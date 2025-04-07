@@ -1,14 +1,14 @@
 // React imports
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Platform } from 'react-native';
+import { Platform, View } from 'react-native';
 
 // Components imports
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { CircularTabBarButton } from '@/components/ui/TabBarButtonStyles';
 // Tamagui
-import { useTheme } from 'tamagui';
+import { GetThemeValueForKey, useTheme } from 'tamagui';
 // Icons
 import { Home as HomeIcon,
         Settings as SettingsIcon,
@@ -29,18 +29,20 @@ export default function TabLayout() {
         tabBarStyle: Platform.select({
           ios: {
             // Use a transparent background on iOS to show the blur effect
-            marginBottom: 10,
-            marginHorizontal: 10,
-            borderRadius: 10,
-            shadowOffset: { width: 0, height: 11 },
-            shadowOpacity: 0.8,
-            shadowRadius: 4,
+            position: 'absolute',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 10,
           },
           default: {
-            elevation: 1,
+            elevation: 2,
             marginBottom: 10,
             marginHorizontal: 10,
             borderRadius: 10,
+            height: 70,
+            paddingBottom: 10, // Try 0 or small value
+            paddingTop: 10,
           },
         }),
       }}>
@@ -49,7 +51,11 @@ export default function TabLayout() {
         name="index"
         options={{
           title: 'Logs',
-          tabBarIcon: ({ color }) => <LogsIcon size={28} name="logs" color={color}/>,
+          tabBarIcon: ({ color }) => 
+          (  
+          <View style={{ display:'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+            <LogsIcon size={28} color={color as GetThemeValueForKey<"color">} />
+          </View>),
       }}
       />
 
@@ -69,7 +75,12 @@ export default function TabLayout() {
         name="settings"
         options={{
           title: 'Settings',
-          tabBarIcon: ({ color }) => <SettingsIcon size={28} name="gear" color={color} />,
+          tabBarIcon: ({ color }) => 
+            (
+              <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+                <SettingsIcon size={28} color={color as GetThemeValueForKey<"color">} />
+              </View>
+            ),
         }}
       />
     </Tabs>

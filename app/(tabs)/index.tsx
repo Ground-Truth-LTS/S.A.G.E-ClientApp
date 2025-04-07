@@ -1,16 +1,24 @@
 // React imports 
 import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
-import { SafeAreaView } from 'react-native';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
 import type { TabsContentProps } from 'tamagui';
-import { View, Image, YStack } from 'tamagui';
+import { View, ListItem, YStack, YGroup } from 'tamagui';
 import { Button, H5, Separator, SizableText, Tabs } from 'tamagui';
-
+import { FileText, ChevronRight} from '@tamagui/lucide-icons';
 
 export default function LogsList() {
+
+  const insets = useSafeAreaInsets();
+
   return (
-    <SafeAreaView style={{ flex: 1 }}>
+    <View style={{  
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingHorizontal: insets.left + insets.right,
+        flex: 1
+      }}>
       <YStack>
         <Tabs
           defaultValue="local"
@@ -45,13 +53,47 @@ export default function LogsList() {
           </Tabs.List>
           <Separator />
           <Tabs.Content value="local">
-            <H5>List of Downloaded Logs</H5>
-            <Button
-              width={
-                40
-              }
-              height={40}
-          >dasd</Button>
+            <YStack margin={20}>
+                <ListItem
+                    hoverTheme
+                    pressTheme
+                    title="Log 1"
+                    subTitle="Log 1 description"
+                    icon={FileText}
+                    iconAfter={ChevronRight}
+                    size="$lg"
+                    padding={10}
+                    borderWidth={1}
+                    marginVertical={10}
+                  ></ListItem>
+  
+                <ListItem
+                  hoverTheme
+                  pressTheme
+                  title="Log 2"
+                  subTitle="Log 2 description"
+                  icon={FileText}
+                  iconAfter={ChevronRight}
+                  size="$lg"
+                  padding={10}
+                  borderWidth={1}
+                  marginVertical={10}
+                ></ListItem>
+
+                <ListItem
+                
+                  hoverTheme
+                  pressTheme
+                  title="Log 3"
+                  subTitle="Log 3 description"
+                  icon={FileText}
+                  iconAfter={ChevronRight}
+                  size="$lg"
+                  padding={10}
+                  
+                  marginVertical={10}
+                ></ListItem>
+          </YStack>  
           </Tabs.Content>
 
           <Tabs.Content value="host">
@@ -59,7 +101,7 @@ export default function LogsList() {
           </Tabs.Content>
         </Tabs>
       </YStack>
-    </SafeAreaView>
+    </View>
   );
 }
 
