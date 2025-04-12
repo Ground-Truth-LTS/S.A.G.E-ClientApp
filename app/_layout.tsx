@@ -13,6 +13,21 @@ import { StatusBar } from 'expo-status-bar';
 import { useEffect } from 'react';
 import 'react-native-reanimated';
 
+
+// SQLite imports
+import { 
+  createDB,
+  insertDevice,
+  insertDummyData,
+  getDevices,
+  getSession,
+  getSensorData,
+  deleteAllFromDevice,
+  dropAllTables } from '@/database/db';
+import * as SQLite from 'expo-sqlite';
+import { Square } from 'tamagui';
+import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
+
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 SplashScreen.preventAutoHideAsync();
 
@@ -21,6 +36,21 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
 
+  // useEffect(() => {
+  //   // Asynchronous initialization logic
+  //   async function initDB() {
+  //     try {
+  //       // Await the database instance created by createDB
+  //       const db = await createDB();
+        
+  //     } catch (error) {
+  //       console.error("Database initialization failed:", error);
+  //     }
+  //   }
+    
+  //   initDB();
+  // }, []);
+  
   useEffect(() => {
     if (loaded) {
       SplashScreen.hideAsync();
@@ -31,7 +61,6 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
-
   return (
     <TamaguiProvider config={config} defaultTheme='light'>
       <Stack>

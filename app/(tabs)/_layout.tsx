@@ -1,6 +1,6 @@
 // React imports
 import { Tabs } from 'expo-router';
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { Platform, View } from 'react-native';
 
 // Components imports
@@ -15,6 +15,7 @@ import { Home as HomeIcon,
         Logs as LogsIcon,
         Plus as PlusIcon,
  } from '@tamagui/lucide-icons';
+
 
 export default function TabLayout() {
   const colorScheme = useTheme();
