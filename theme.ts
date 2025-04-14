@@ -1,8 +1,8 @@
 import { createThemes, defaultComponentThemes } from '@tamagui/theme-builder'
 import * as Colors from '@tamagui/colors'
 
-const darkPalette = ['hsla(0, 15%, 1%, 1)','hsla(1, 15%, 6%, 1)','hsla(3, 15%, 12%, 1)','hsla(4, 15%, 17%, 1)','hsla(6, 15%, 23%, 1)','hsla(7, 15%, 28%, 1)','hsla(9, 16%, 34%, 1)','hsla(10, 16%, 39%, 1)','hsla(12, 16%, 45%, 1)','hsla(13, 16%, 50%, 1)','hsla(0, 15%, 93%, 1)','hsla(0, 15%, 99%, 1)']
-const lightPalette = ['hsla(0, 15%, 99%, 1)','hsla(1, 15%, 94%, 1)','hsla(3, 15%, 88%, 1)','hsla(4, 15%, 83%, 1)','hsla(6, 15%, 77%, 1)','hsla(7, 15%, 72%, 1)','hsla(9, 16%, 66%, 1)','hsla(10, 16%, 61%, 1)','hsla(12, 16%, 55%, 1)','hsla(13, 16%, 50%, 1)','hsla(0, 15%, 15%, 1)','hsla(0, 15%, 1%, 1)']
+const darkPalette = ['#030202','#120d0d','#231a1a','#322625','#433432','#523f3d','#654d49','#735954','#856860','#94746b','#f0eaea','#fdfcfc']
+const lightPalette = ['#fdfcfc','#f2eded','#e5dcdc','#dacecd','#cdbdbc','#c2afad','#b69f9a','#ab918c','#9f817a','#94746b','#2c2121','#030202']
 
 const lightShadows = {
   shadow1: 'rgba(0,0,0,0.04)',
@@ -53,8 +53,8 @@ const builtThemes = createThemes({
 
   accent: {
     palette: {
-      dark: ['hsla(101, 51%, 41%, 1)','hsla(101, 51%, 43%, 1)','hsla(101, 51%, 45%, 1)','hsla(101, 51%, 47%, 1)','hsla(101, 51%, 49%, 1)','hsla(101, 51%, 52%, 1)','hsla(101, 51%, 54%, 1)','hsla(101, 51%, 56%, 1)','hsla(101, 51%, 58%, 1)','hsla(101, 51%, 60%, 1)','hsla(250, 50%, 90%, 1)','hsla(250, 50%, 95%, 1)'],
-      light: ['hsla(101, 51%, 39%, 1)','hsla(101, 51%, 42%, 1)','hsla(101, 51%, 45%, 1)','hsla(101, 51%, 48%, 1)','hsla(101, 51%, 51%, 1)','hsla(101, 51%, 53%, 1)','hsla(101, 51%, 56%, 1)','hsla(101, 51%, 59%, 1)','hsla(101, 51%, 62%, 1)','hsla(101, 51%, 65%, 1)','hsla(250, 50%, 95%, 1)','hsla(250, 50%, 95%, 1)'],
+      dark: ['#559e33','#59a636','#5dad38','#61b53b','#66bd3d','#6ec346','#74c64e','#7ac856','#80cb5d','#86cd65','#ddd9f2','#eeecf9'],
+      light: ['#519631','#57a234','#5dad38','#64b93c','#6bc242','#71c44a','#7ac856','#83cc61','#8cd06d','#95d378','#eeecf9','#eeecf9'],
     },
   },
 

@@ -3,14 +3,18 @@ import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
-import type { TabsContentProps } from 'tamagui';
+import type { TabLayout, TabsContentProps, TabsTabProps } from 'tamagui';
 import { View, ListItem, YStack, YGroup } from 'tamagui';
-import { Button, H5, Separator, SizableText, Tabs } from 'tamagui';
+import { Button, H5, Separator, SizableText, Tabs, styled } from 'tamagui';
 import { FileText, ChevronRight} from '@tamagui/lucide-icons';
 
-export default function LogsList() {
 
+
+
+export default function LogsList() {
+  const [active, setActive] = React.useState('local');
   const insets = useSafeAreaInsets();
+
 
   return (
     <View style={{  
@@ -21,6 +25,8 @@ export default function LogsList() {
       }}>
       <YStack>
         <Tabs
+          value={active}
+          onValueChange={setActive}
           defaultValue="local"
           orientation="horizontal"
           flexDirection="column"
@@ -40,13 +46,16 @@ export default function LogsList() {
               flex={1}
               value="local"
               height={50}
+              backgroundColor={active === 'local' ? '$color4' : '$color4'}
             >
               <SizableText >Local</SizableText>
             </Tabs.Tab>
             <Tabs.Tab
               flex={1}
               value="host"
-              height={50}
+              height={50}    
+              backgroundColor={active !== 'local' ? '$color4' : '$color4'}
+              
             >
               <SizableText >Host</SizableText>
             </Tabs.Tab>
@@ -63,8 +72,9 @@ export default function LogsList() {
                     iconAfter={ChevronRight}
                     size="$lg"
                     padding={10}
-                    borderWidth={1}
                     marginVertical={10}
+                    borderWidth={0}
+                    borderBottomWidth={1}
                   ></ListItem>
   
                 <ListItem
@@ -76,12 +86,12 @@ export default function LogsList() {
                   iconAfter={ChevronRight}
                   size="$lg"
                   padding={10}
-                  borderWidth={1}
                   marginVertical={10}
+                  borderWidth={0}
+                  borderBottomWidth={1}
                 ></ListItem>
 
                 <ListItem
-                
                   hoverTheme
                   pressTheme
                   title="Log 3"
@@ -90,8 +100,9 @@ export default function LogsList() {
                   iconAfter={ChevronRight}
                   size="$lg"
                   padding={10}
-                  
                   marginVertical={10}
+                  borderWidth={0}
+                  borderBottomWidth={1}
                 ></ListItem>
           </YStack>  
           </Tabs.Content>
