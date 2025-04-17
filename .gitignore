@@ -35,6 +35,10 @@ yarn-error.*
 # typescript
 *.tsbuildinfo
 
+#tamagui
+.tamagui/
+.tamagui
+
 app-example
 
 package-lock.json
