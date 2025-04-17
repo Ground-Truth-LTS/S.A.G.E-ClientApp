@@ -14,7 +14,9 @@ export const config = createTamagui({
       5: 20,
       sm: 8,
       md: 12,
-      lg: 20
+      lg: 20,
+      xl: 32,
+      xl2: 40,
     },
     // margin="$-sm"
     space: { '-sm': 8 },
