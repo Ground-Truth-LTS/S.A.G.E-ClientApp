@@ -6,39 +6,63 @@ import { config } from '../tamagui.config'
 // Expo imports
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
 import { StatusBar } from 'expo-status-bar';
 
 // React imports
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import 'react-native-reanimated';
 
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+// Import our custom BootSplash implementation
+import BootSplash from '../bootsplash';
+import { ThemeProvider } from '../context/ThemeProvider';
+import { YStack } from 'tamagui';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+  const [splashVisible, setSplashVisible] = useState(true);
 
+  // Handle font loading and splash screen
   useEffect(() => {
     if (loaded) {
-      SplashScreen.hideAsync();
+      // Fonts are loaded, we can hide the splash in a moment
+      // We keep splash visible for a short moment to ensure smooth transition
     }
   }, [loaded]);
-
 
   if (!loaded) {
     return null;
   }
 
   return (
-    <TamaguiProvider config={config} defaultTheme='light'>
-      <Stack>
+    <TamaguiProvider config={config} defaultTheme='dark'>
+      <ThemeProvider>
+      <YStack flex={1} backgroundColor="$background">
+      <Stack
+        screenOptions={{
+          // contentStyle sets the background behind your screen component
+          contentStyle: {
+            backgroundColor: '$background',
+          },
+          // headerStyle sets the background of the native header bar
+          headerStyle: {
+            backgroundColor: '$background',
+          }
+        }}
+      >
         <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
         <Stack.Screen name="+not-found" />
       </Stack>
       <StatusBar style="auto" />
+      {splashVisible && (
+        <BootSplash.BootSplashScreen
+          onAnimationComplete={() => setSplashVisible(false)}
+        />
+      )}
+       </YStack>
+      </ThemeProvider>
+      
     </TamaguiProvider>
   );
 }

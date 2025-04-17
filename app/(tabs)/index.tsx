@@ -4,15 +4,14 @@ import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
 import type { TabLayout, TabsContentProps, TabsTabProps } from 'tamagui';
-import { View, ListItem, YStack, YGroup } from 'tamagui';
+import { View, ListItem, YStack, useListItem } from 'tamagui';
 import { Button, H5, Separator, SizableText, Tabs, styled } from 'tamagui';
-import { FileText, ChevronRight} from '@tamagui/lucide-icons';
-
+import { FileText, ChevronRight, Download} from '@tamagui/lucide-icons';  
 
 
 
 export default function LogsList() {
-  const [active, setActive] = React.useState('local');
+  const [active, setActive] = React.useState('phone');
   const insets = useSafeAreaInsets();
 
 
@@ -27,7 +26,7 @@ export default function LogsList() {
         <Tabs
           value={active}
           onValueChange={setActive}
-          defaultValue="local"
+          defaultValue="phone"
           orientation="horizontal"
           flexDirection="column"
           width="100%"
@@ -44,39 +43,28 @@ export default function LogsList() {
           >
             <Tabs.Tab
               flex={1}
-              value="local"
+              value="phone"
               height={50}
-              backgroundColor={active === 'local' ? '$color4' : '$color4'}
+              backgroundColor={active === 'phone' ? '$color4' : '$color4'}
             >
-              <SizableText >Local</SizableText>
+              <SizableText >Phone</SizableText>
             </Tabs.Tab>
             <Tabs.Tab
               flex={1}
-              value="host"
+              value="device"
               height={50}    
-              backgroundColor={active !== 'local' ? '$color4' : '$color4'}
+              backgroundColor={active !== 'phone' ? '$color4' : '$color4'}
               
             >
-              <SizableText >Host</SizableText>
+              <SizableText >Device</SizableText>
             </Tabs.Tab>
           </Tabs.List>
           <Separator />
-          <Tabs.Content value="local">
+          <Tabs.Content value="phone" backgroundColor="$color1" borderColor="$color1" height={"100%"}>
             <YStack margin={20}>
-                <ListItem
-                    hoverTheme
-                    pressTheme
-                    title="Log 1"
-                    subTitle="Log 1 description"
-                    icon={FileText}
-                    iconAfter={ChevronRight}
-                    size="$lg"
-                    padding={10}
-                    marginVertical={10}
-                    borderWidth={0}
-                    borderBottomWidth={1}
-                  ></ListItem>
-  
+
+            
+                {/*This is the ListItem for the Mobile tab*/}
                 <ListItem
                   hoverTheme
                   pressTheme
@@ -84,31 +72,38 @@ export default function LogsList() {
                   subTitle="Log 2 description"
                   icon={FileText}
                   iconAfter={ChevronRight}
-                  size="$lg"
+                  color="$color9"
+                  scaleIcon={1.7}
                   padding={10}
-                  marginVertical={10}
+                  size={16}
                   borderWidth={0}
-                  borderBottomWidth={1}
+                  borderBottomWidth={3}
+                  backgroundColor="$color1"
                 ></ListItem>
-
-                <ListItem
-                  hoverTheme
-                  pressTheme
-                  title="Log 3"
-                  subTitle="Log 3 description"
-                  icon={FileText}
-                  iconAfter={ChevronRight}
-                  size="$lg"
-                  padding={10}
-                  marginVertical={10}
-                  borderWidth={0}
-                  borderBottomWidth={1}
-                ></ListItem>
+      
           </YStack>  
           </Tabs.Content>
 
-          <Tabs.Content value="host">
-            <H5>Device Logs</H5>
+          <Tabs.Content value="device" backgroundColor="$color1" height={"100%"}>
+          <YStack margin={20}>
+            {/*This is the ListItem for the Device tab*/}
+            <ListItem
+              hoverTheme
+              pressTheme
+              title="Log 1"
+              subTitle="Log 1 description"
+              icon={FileText}
+              iconAfter={Download}
+              color="$color9"
+              scaleIcon={1.7}
+              padding={10}
+              size={16}
+              borderWidth={0}
+              borderBottomWidth={3}
+              backgroundColor="$color1"
+            ></ListItem>
+          </YStack>
+        
           </Tabs.Content>
         </Tabs>
       </YStack>
