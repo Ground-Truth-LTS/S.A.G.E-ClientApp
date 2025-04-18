@@ -15,7 +15,9 @@ import { Home as HomeIcon,
         Settings as SettingsIcon,
         Logs as LogsIcon,
         Plus as PlusIcon,
+        CircleDot,
  } from '@tamagui/lucide-icons';
+import { connectToESP32 } from './new-log';
 
 export default function TabLayout() {
   const colorScheme = useTheme();
@@ -36,10 +38,10 @@ export default function TabLayout() {
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.2,
             shadowRadius: 10,
-            backgroundColor: isDarkMode ? colorScheme.background?.get() : "$background"
+            backgroundColor: isDarkMode ? colorScheme.background?.get() :  "$background" 
           },
           default: {
-            backgroundColor: colorScheme.background?.get(),
+            backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
             elevation: 2,
             marginBottom: 10,
             marginHorizontal: 10,
@@ -49,7 +51,7 @@ export default function TabLayout() {
             paddingTop: 10,
             borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
             borderWidth: isDarkMode ? 1 : 0,
-            borderTopWidth: 0
+            borderTopWidth: isDarkMode ? 0 : 1,
           },
         }),
       }}>
@@ -68,11 +70,19 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="new-log"
+        listeners={{
+          tabPress: (e) => {
+            // Prevent default navigation
+            e.preventDefault();
+            // Call device connection function instead
+            connectToESP32();
+          },
+        }}
         options={{
           title: '',
           tabBarButton: (props) => (
             <CircularTabBarButton {...props}>
-              <PlusIcon size={45} color="white" />
+              <CircleDot size={45} color="white" />
             </CircularTabBarButton>
           ),
         }}
