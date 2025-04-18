@@ -20,11 +20,14 @@ export default function LogsList() {
   }
 
   return (
-    <View style={{  
+    <View 
+      height="100%"
+      backgroundColor="$background"
+      style={{  
         paddingTop: insets.top,
         paddingBottom: insets.bottom,
         paddingHorizontal: insets.left + insets.right,
-        flex: 1
+        flex: 1,
       }}>
       <YStack>
         <Tabs

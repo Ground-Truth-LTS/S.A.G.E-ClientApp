@@ -13,7 +13,6 @@ import { useTheme } from '../../context/ThemeProvider';
 
 //import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 export default function Settings() {
   const {isDarkMode, toggleTheme} = useTheme();
   const [updatesSwitchOn, setUpdatesSwitchOn] = useState(false);
@@ -85,7 +84,6 @@ export default function Settings() {
           ></ListItem>    
 
           <ListItem
-            title="Dark Mode"
             iconAfter={
               <Switch 
               size="$xl"  
@@ -101,7 +99,7 @@ export default function Settings() {
             padding={24}
             scaleIcon={1.5}
             backgroundColor="$color1"
-          ></ListItem>    
+          >Dark Mode</ListItem>    
 
           <ListItem
             title="Notifications"
