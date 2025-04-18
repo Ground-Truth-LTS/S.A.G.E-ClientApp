@@ -3,9 +3,9 @@ import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
-import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps } from 'tamagui';
+import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button } from 'tamagui';
 import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui';
-import { FileText, ChevronRight, Download} from '@tamagui/lucide-icons';  
+import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
 
 const StyledTab = styled(Tabs.Tab, {
@@ -13,6 +13,7 @@ const StyledTab = styled(Tabs.Tab, {
     active: {
       true: {
         backgroundColor: "transparent",
+        textEmphasis: "strong",
       },
     },
   },
@@ -73,6 +74,7 @@ export default function LogsList() {
         flex: 1,
       }}>
       <YStack>
+        
         <Tabs
           value={currentTab}
           onValueChange={setCurrentTab}
@@ -124,6 +126,14 @@ export default function LogsList() {
             justifyContent='center'
             backgroundColor="transparent"
           >
+            <Button 
+              marginHorizontal={10} 
+              width={60}
+              icon={<ListFilter size={25} />} 
+              backgroundColor="transparent" 
+              pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
+              ></Button>
+
             <StyledTab
               value="phone"
               height={40}
@@ -138,7 +148,9 @@ export default function LogsList() {
               borderBottomLeftRadius={4}
               onInteraction={handleOnInteraction}
             >
-              <SizableText >Phone</SizableText>
+              <SizableText 
+                fontWeight={currentTab !== "phone" ? 500 : 600}
+              >Phone</SizableText>
             </StyledTab>
             <StyledTab
               value="device"
@@ -154,11 +166,21 @@ export default function LogsList() {
               borderBottomRightRadius={4}
               onInteraction={handleOnInteraction}
             >
-              <SizableText >Device</SizableText>
+              <SizableText 
+                fontWeight={currentTab !== "device" ? 500 : 600}
+              >Device</SizableText>
             </StyledTab>
+            <Button 
+              width={60}
+              marginHorizontal={10} 
+              backgroundColor="transparent" 
+              color="$accent4"
+              pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
+              > Select </Button>
           </Tabs.List>
           </YStack>
           <Separator />
+    
           <Tabs.Content value="phone" backgroundColor="$color1" borderColor="$color1" height={"100%"}>
             <ScrollView
               contentContainerStyle={{
@@ -187,7 +209,7 @@ export default function LogsList() {
             </ScrollView>
           </Tabs.Content>
 
-          <Tabs.Content value="device" backgroundColor="$color1" height={"100%"}>
+          <Tabs.Content value="device"  backgroundColor="$color1" height={"100%"}>
             <ScrollView
               contentContainerStyle={{
                 paddingBottom: 120, // Add extra padding at the bottom for the tab bar
@@ -213,6 +235,8 @@ export default function LogsList() {
               </YStack>
             </ScrollView>
           </Tabs.Content>
+       
+        
         </Tabs>
       </YStack>
     </View>
@@ -240,27 +264,3 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
     />
   )
 }
-
-const AnimatedYStack = styled(YStack, {
-  flex: 1,
-  x: 0,
-  opacity: 1,
-
-  animation: 'fast',
-  variants: {
-    // 1 = right, 0 = nowhere, -1 = left
-    direction: {
-      ':number': (direction) => ({
-        enterStyle: {
-          x: direction > 0 ? -25 : 25,
-          opacity: 0,
-        },
-        exitStyle: {
-          zIndex: 0,
-          x: direction < 0 ? -25 : 25,
-          opacity: 0,
-        },
-      }),
-    },
-  } as const,
-})

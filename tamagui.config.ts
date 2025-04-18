@@ -82,6 +82,11 @@ export const config = createTamagui({
   },
 
   animations: createAnimations({
+    superfast: {
+      damping: 40,
+      mass: 1.4,
+      stiffness: 300,
+    },
     fast: {
       damping: 20,
       mass: 1.2,
