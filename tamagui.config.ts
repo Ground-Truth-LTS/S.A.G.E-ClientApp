@@ -1,8 +1,41 @@
 import { defaultConfig } from '@tamagui/config/v4'
 import { themes } from './theme'
-import { createTamagui } from '@tamagui/core'
+import { createTamagui, createFont } from '@tamagui/core'
+
+const headingFont = createFont({
+  family: 'SpaceMono, Arial, sans-serif', // Use your loaded font family
+  size: {
+    1: 12,
+    2: 14,
+    3: 18,
+    4: 22,
+    5: 28,
+    6: 36,
+    7: 48,
+    8: 64,
+  },
+  weight: {
+    4: '400',
+    6: '600',
+    7: '700',
+    8: '800',
+  },
+  lineHeight: {
+    1: 17,
+    2: 22,
+    3: 25,
+    4: 30,
+    5: 38,
+    6: 46,
+    7: 58,
+    8: 74,
+  },
+})
 
 export const config = createTamagui({
+  fonts: {
+    heading: headingFont
+    },
   // act like CSS variables at your root
   tokens: {
     // width="$sm"

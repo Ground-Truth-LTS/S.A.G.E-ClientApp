@@ -14,7 +14,7 @@ import 'react-native-reanimated';
 
 // Import our custom BootSplash implementation
 import BootSplash from '../bootsplash';
-import { ThemeProvider } from '../context/ThemeProvider';
+import { ThemeProvider, useTheme as isDarkProvider } from '../context/ThemeProvider';
 import { YStack } from 'tamagui';
 
 export default function RootLayout() {
@@ -22,7 +22,6 @@ export default function RootLayout() {
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
   const [splashVisible, setSplashVisible] = useState(true);
-
   // Handle font loading and splash screen
   useEffect(() => {
     if (loaded) {
@@ -36,33 +35,40 @@ export default function RootLayout() {
   }
 
   return (
-    <TamaguiProvider config={config} defaultTheme='dark'>
+    <TamaguiProvider config={config} defaultTheme='light'>
       <ThemeProvider>
-      <YStack flex={1} backgroundColor="$background">
-      <Stack
-        screenOptions={{
-          // contentStyle sets the background behind your screen component
-          contentStyle: {
-            backgroundColor: '$background',
-          },
-          // headerStyle sets the background of the native header bar
-          headerStyle: {
-            backgroundColor: '$background',
-          }
-        }}
-      >
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
-        <Stack.Screen name="+not-found" />
-      </Stack>
-      <StatusBar style="auto" />
-      {splashVisible && (
-        <BootSplash.BootSplashScreen
-          onAnimationComplete={() => setSplashVisible(false)}
-        />
-      )}
-       </YStack>
+        <StatusBarManager />
+        <YStack flex={1} backgroundColor="$background">
+          <Stack
+            screenOptions={{
+              // contentStyle sets the background behind your screen component
+              contentStyle: {
+                backgroundColor: '$background',
+              },
+              // headerStyle sets the background of the native header bar
+            }}
+          >
+            <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
+            <Stack.Screen name="+not-found" />
+          </Stack>
+    
+          {splashVisible && (
+            <BootSplash.BootSplashScreen
+              onAnimationComplete={() => setSplashVisible(false)}
+            />
+          )}
+             
+        </YStack>
+  
       </ThemeProvider>
       
     </TamaguiProvider>
   );
+}
+
+function StatusBarManager() {
+  const { isDarkMode } = isDarkProvider();
+  
+  // This will apply the status bar style app-wide
+  return <StatusBar style={isDarkMode ? "light" : "dark"} animated={true} />;
 }

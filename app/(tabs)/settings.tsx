@@ -1,5 +1,5 @@
 // Tamagui imports
-import { View, Text, Switch, YStack, ListItem, useForceUpdate } from 'tamagui';
+import { View, Text, Switch, YStack, ListItem, ScrollView } from 'tamagui';
 import { addTheme, updateTheme } from '@tamagui/theme'
 import { ChevronRight } from '@tamagui/lucide-icons';
 import config from '../../tamagui.config';
@@ -13,14 +13,11 @@ import { useTheme } from '../../context/ThemeProvider';
 
 //import AsyncStorage from '@react-native-async-storage/async-storage';
 
-
 export default function Settings() {
   const {isDarkMode, toggleTheme} = useTheme();
   const [updatesSwitchOn, setUpdatesSwitchOn] = useState(false);
   const [notificationSwitchOn, setNotificationSwitchOn] = useState(false);
   const [statisticsSwitchOn, setStatisticsSwitchOn] = useState(false);
-
-  const update = useForceUpdate()
 
   const insets = useSafeAreaInsets();
 
@@ -35,14 +32,17 @@ export default function Settings() {
 
   return (
   
-      <View height="100%" 
-            backgroundColor="$color1" 
-            style={{
-              paddingTop: insets.top,
-              paddingBottom: insets.bottom,
-              paddingHorizontal: insets.left + insets.right,
-              flex: 1
-            }}
+      <ScrollView height="100%" 
+        backgroundColor="$color1" 
+        style={{
+          paddingTop: insets.top,
+          paddingBottom: insets.bottom,
+          paddingHorizontal: insets.left + insets.right,
+          flex: 1
+        }}
+        contentContainerStyle={{
+          paddingBottom: 110, // Add extra padding at the bottom for the tab bar
+        }}
       >    
       <View
         backgroundColor="$color1" 
@@ -84,7 +84,6 @@ export default function Settings() {
           ></ListItem>    
 
           <ListItem
-            title="Dark Mode"
             iconAfter={
               <Switch 
               size="$xl"  
@@ -100,7 +99,7 @@ export default function Settings() {
             padding={24}
             scaleIcon={1.5}
             backgroundColor="$color1"
-          ></ListItem>    
+          >Dark Mode</ListItem>    
 
           <ListItem
             title="Notifications"
@@ -183,16 +182,24 @@ export default function Settings() {
             padding={24}
             scaleIcon={1.5}
             backgroundColor="$color1"
-          >
-            
-          </ListItem>
+          ></ListItem>
 
-          <View style={[styles.toggleBottomContainer, {backgroundColor: "$color1"}]}>
+
+
+
+
+          <View 
+            width="100%" 
+            alignItems='center' 
+            justifyContent='center'
+            paddingVertical={20}
+            style={[{backgroundColor: "$color1"}]}>
             <Text style={[styles.subtitles]}>version 0.0.1</Text>
           </View>
+          
         </YStack>
 
-      </View>
+      </ScrollView>
   
   );
 }
@@ -205,12 +212,12 @@ const styles = StyleSheet.create({
     position: 'absolute',
   },  titleContainer: {
     flexDirection: 'row',
-    gap: 8,
     textAlign: 'center',
     justifyContent: 'center',
     width: '100%',
     position: 'relative', // This is needed for positioning the shadow
-    paddingBottom: 10,
+    paddingBottom: 0,
+    paddingTop: 10
   },
   bottomShadow: {
     position: 'absolute',
@@ -236,16 +243,7 @@ const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: '#C1C1C1'
   },
-  toggleBottomContainer: {
-    textAlign: 'center',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    paddingHorizontal: 12,
-    marginVertical: 0,
-    marginHorizontal: 0,
-    paddingTop: '40%',
-    paddingVertical: 12,
-  },
+
   textContainer: {
     flexDirection: 'column',
   },
