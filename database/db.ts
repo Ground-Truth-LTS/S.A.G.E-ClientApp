@@ -1,4 +1,5 @@
 import * as SQLite from 'expo-sqlite';
+import { json } from 'stream/consumers';
 
 // DB Creation
 export const createDB = async  () => {
@@ -67,26 +68,34 @@ export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : 
   console.log(result.lastInsertRowId,result.changes);
 }
 
-// Get all data from Tables (for now only prints the data)
+// Get device data
 export const getDevices = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Device');
-  for (const row of allRows) {
-    console.log(row.device_id, row.device_name);
-  }
+  return JSON.stringify(allRows);
 }
 
+// Get Session data
 export const getSession = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Session');
-  for (const row of allRows) {
-    console.log(row.session_id, row.timestamp_start, row.timestamp_end, row.location, row.device_id);
-  }
+  return JSON.stringify(allRows);
 }
 
+export const getSessionByTimeframe = async (db : SQLite.SQLiteDatabase,
+  start: string,
+  end: string
+) => {
+  const allRows = await db.getAllAsync(`SELECT *
+          FROM Session
+         WHERE timestamp_start >= ?
+           AND timestamp_end   <= ?
+         ORDER BY timestamp_start`, start, end);
+  return JSON.stringify(allRows);
+}
+
+// Get Sensor
 export const getSensorData = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Processed_Sensor_Data');
-  for (const row of allRows) {
-    console.log(row.data_id,row.session_id, row.nitrogen, row.phosphorus, row.potassium, row.pH, row.moisture, row.temperature);
-  }
+  return JSON.stringify(allRows);
 }
 
 // Delete from Tables
