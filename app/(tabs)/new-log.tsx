@@ -7,16 +7,6 @@ export default function NewLogScreen() {
   );
 }
 
-// Tries to connect to the ESP32 device and returns true if successful, false otherwise.
-export function connectToESP32(): boolean {
-  return false;
-}
-
-// Checks if the ESP32 device is connected and returns true if connected, false otherwise.
-export function isDeviceConnected(): boolean {
-  return false ;
-}
-
 export function startDevice() {
 
 }

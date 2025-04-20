@@ -324,12 +324,7 @@ function submitFeedBackForm() {
 
 
 const styles = StyleSheet.create({
-  headerImage: {
-    color: '#808080',
-    bottom: -90,
-    left: -35,
-    position: 'absolute',
-  },  titleContainer: {
+  titleContainer: {
     flexDirection: 'row',
     textAlign: 'center',
     justifyContent: 'center',
