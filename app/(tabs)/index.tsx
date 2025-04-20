@@ -7,6 +7,8 @@ import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProp
 import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
+import { useESP32Data } from '@/utils/esp_http_request';
+
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -23,33 +25,22 @@ const StyledTab = styled(Tabs.Tab, {
 export default function LogsList() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-
+  const { data, loading, error } = useESP32Data(); // Fetch data from ESP32
   // Refer to tamagui doc https://tamagui.dev/ui/tabs for more information about the Tabs component, the tabs animation were done from the tabs doc
   const [tabState, setTabState] = React.useState<{
     currentTab: string
     intentAt: TabLayout | null
     activeAt: TabLayout | null
-    prevActiveAt: TabLayout | null
   }>({
     activeAt: null,
     currentTab: 'phone',
     intentAt: null,
-    prevActiveAt: null,
   })
 
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
-  const setActiveIndicator = (activeAt: any) =>
-    setTabState({ ...tabState, prevActiveAt: tabState.activeAt, activeAt })
-  const { activeAt, intentAt, prevActiveAt, currentTab } = tabState
-
-  // 1 = right, 0 = nowhere, -1 = left
-  const direction = (() => {
-    if (!activeAt || !prevActiveAt || activeAt.x === prevActiveAt.x) {
-      return 0
-    }
-    return activeAt.x > prevActiveAt.x ? -1 : 1
-  })()
+  const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
+  const { activeAt, intentAt, currentTab } = tabState
 
   const handleOnInteraction: TabsTabProps['onInteraction'] = (type, layout) => {
     if (type === 'select') {
@@ -216,22 +207,7 @@ export default function LogsList() {
               }}>
               <YStack margin={20}>
                 {/*This is the ListItem for the Device tab*/}
-                <ListItem
-                  hoverTheme
-                  pressTheme
-                  title="Log 1"
-                  subTitle="Log 1 description"
-                  icon={FileText}
-                  iconAfter={Download}
-                  color="$color9"
-                  scaleIcon={1.7}
-                  padding={10}
-                  size={16}
-                  borderWidth={0}
-                  borderBottomWidth={3}
-                  backgroundColor="$color1"
-                ></ListItem>
-                
+                <DisplayDeviceData/>
               </YStack>
             </ScrollView>
           </Tabs.Content>
@@ -263,4 +239,38 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
       {...props}
     />
   )
+}
+
+const DisplayDeviceData = (data: any) => {
+  const navigation = useNavigation<any>();  
+  const logList = []
+
+  const navigateToLog = (id: string) => {
+      navigation.navigate('log/[id]', { id });
+  }
+
+  for(let index = 0; index < data.logs.length; index++){
+    logList.push(
+      <ListItem
+        key={index}
+        hoverTheme
+        pressTheme
+        title={data[index].title}
+        subTitle={data[index].description}
+        icon={FileText}
+        iconAfter={ChevronRight}
+        color="$color9"
+        scaleIcon={1.7}
+        padding={10}
+        size={16}
+        borderWidth={0}
+        borderBottomWidth={3}
+        backgroundColor="$color1"
+        onPress={() => navigateToLog(data[index].id)}
+      ></ListItem>
+    )
+  }
+
+  return logList;
+
 }
