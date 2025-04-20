@@ -1,6 +1,7 @@
 import { defaultConfig } from '@tamagui/config/v4'
 import { themes } from './theme'
 import { createTamagui, createFont } from '@tamagui/core'
+import { createAnimations } from '@tamagui/animations-react-native'
 
 const headingFont = createFont({
   family: 'SpaceMono, Arial, sans-serif', // Use your loaded font family
@@ -35,7 +36,7 @@ const headingFont = createFont({
 export const config = createTamagui({
   fonts: {
     heading: headingFont
-    },
+  },
   // act like CSS variables at your root
   tokens: {
     // width="$sm"
@@ -54,7 +55,7 @@ export const config = createTamagui({
     // margin="$-sm"
     space: { '-sm': 8 },
     // radius="$none"
-    radius: { none: 0, sm: 3 },
+    radius: { none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
     color: { white: '#fff', black: '#000' },
   },
 
@@ -79,6 +80,30 @@ export const config = createTamagui({
     disableSSR: true, // for client-side apps gains a bit of performance
     allowedStyleValues: 'somewhat-strict-web', // if targeting only web
   },
+
+  animations: createAnimations({
+    superfast: {
+      damping: 40,
+      mass: 1.4,
+      stiffness: 300,
+    },
+    fast: {
+      damping: 20,
+      mass: 1.2,
+      stiffness: 250,
+    },
+    medium: {
+      damping: 10,
+      mass: 0.9,
+      stiffness: 100,
+    },
+    slow: {
+      damping: 20,
+      stiffness: 60,
+    },
+  }),
+
+
 })
 
 type Conf = typeof config
