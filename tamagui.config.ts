@@ -36,7 +36,7 @@ const headingFont = createFont({
 export const config = createTamagui({
   fonts: {
     heading: headingFont
-    },
+  },
   // act like CSS variables at your root
   tokens: {
     // width="$sm"

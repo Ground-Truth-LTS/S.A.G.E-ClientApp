@@ -125,7 +125,7 @@ export default function Settings() {
           backgroundColor="$color1"
         ></ListItem>    
 
-
+        {/*
         <ListItem
           title="Automatic Updates"
           subTitle="Permissions for available updates to be automatic."
@@ -146,6 +146,8 @@ export default function Settings() {
           scaleIcon={1.5}
           backgroundColor="$color1"
         ></ListItem>    
+        */}
+    
 
 
 
