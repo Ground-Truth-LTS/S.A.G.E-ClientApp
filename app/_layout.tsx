@@ -42,25 +42,6 @@ export default function RootLayout() {
   });
   const [splashVisible, setSplashVisible] = useState(true);
   // Handle font loading and splash screen
-  useEffect(() => {
-    // Asynchronous initialization logic
-    async function initDB() {
-      try {
-        // Await the database instance created by createDB
-        const db = await createDB();
-        // Now call insertDevice with the resolved db
-        // await insertDevice(db, "test1");
-        // insertDummyData(db);
-        console.log(getSession(db))
-        console.log(getSessionByTimeframe(db, "2023-03-01T10:00:00Z","2023-05-01T11:00:00Z"));
-        // dropAllTables(db);
-      } catch (error) {
-        console.error("Database initialization failed:", error);
-      }
-    }
-    
-    initDB();
-  }, []);
   
   useEffect(() => {
     if (loaded) {
