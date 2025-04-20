@@ -24,6 +24,7 @@
     },
     "plugins": [
       "expo-router",
+      ["react-native-bootsplash", { "assetsDir": "assets/bootsplash" }],
       [
         "expo-splash-screen",
         {
@@ -34,6 +35,7 @@
         }
       ],
       "expo-sqlite"
+          
     ],
     "experiments": {
       "typedRoutes": true

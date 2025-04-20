@@ -1,29 +1,33 @@
 // React imports
 import { Tabs } from 'expo-router';
-import React, { useEffect, useState } from 'react';
-import { Platform, View } from 'react-native';
+import React from 'react';
+import { Platform } from 'react-native';
 
 // Components imports
 import { HapticTab } from '@/components/HapticTab';
 import TabBarBackground from '@/components/ui/TabBarBackground';
 import { CircularTabBarButton } from '@/components/ui/TabBarButtonStyles';
+import {useTheme as isDarkProvider} from '@/context/ThemeProvider';
 // Tamagui
-import { GetThemeValueForKey, useTheme } from 'tamagui';
+import { GetThemeValueForKey, useTheme, View } from 'tamagui';
 // Icons
 import { Home as HomeIcon,
         Settings as SettingsIcon,
         Logs as LogsIcon,
         Plus as PlusIcon,
+        CircleDot,
  } from '@tamagui/lucide-icons';
+import { connectToESP32 } from './new-log';
 
 
 export default function TabLayout() {
   const colorScheme = useTheme();
-
+  const { isDarkMode } = isDarkProvider();
   return (
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: colorScheme.accent1?.get(),
+       
         headerShown: false,
         tabBarButton: HapticTab,
         tabBarBackground: TabBarBackground,
@@ -35,8 +39,10 @@ export default function TabLayout() {
             shadowOffset: { width: 0, height: 4 },
             shadowOpacity: 0.2,
             shadowRadius: 10,
+            backgroundColor: isDarkMode ? colorScheme.background?.get() :  "$background" 
           },
           default: {
+            backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
             elevation: 2,
             marginBottom: 10,
             marginHorizontal: 10,
@@ -44,6 +50,9 @@ export default function TabLayout() {
             height: 70,
             paddingBottom: 10, // Try 0 or small value
             paddingTop: 10,
+            borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
+            borderWidth: isDarkMode ? 1 : 0,
+            borderTopWidth: isDarkMode ? 0 : 1,
           },
         }),
       }}>
@@ -62,11 +71,19 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="new-log"
+        listeners={{
+          tabPress: (e) => {
+            // Prevent default navigation
+            e.preventDefault();
+            // Call device connection function instead
+            connectToESP32();
+          },
+        }}
         options={{
           title: '',
           tabBarButton: (props) => (
             <CircularTabBarButton {...props}>
-              <PlusIcon size={45} color="white" />
+              <CircleDot size={45} color="white" />
             </CircularTabBarButton>
           ),
         }}
@@ -78,7 +95,7 @@ export default function TabLayout() {
           title: 'Settings',
           tabBarIcon: ({ color }) => 
             (
-              <View style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
+              <View  style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100%' }}>
                 <SettingsIcon size={28} color={color as GetThemeValueForKey<"color">} />
               </View>
             ),
