@@ -3,10 +3,13 @@ import React from 'react';
 import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
-import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button } from 'tamagui';
+import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button, Text } from 'tamagui';
 import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
+import { useESP32Data } from '@/utils/esp_http_request';
+import { useEffect, useState } from 'react';
+
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -23,33 +26,27 @@ const StyledTab = styled(Tabs.Tab, {
 export default function LogsList() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
-
+  const {
+    data,
+    loading,
+    error,
+    connectionStatus: status,
+  } = useESP32Data();
   // Refer to tamagui doc https://tamagui.dev/ui/tabs for more information about the Tabs component, the tabs animation were done from the tabs doc
   const [tabState, setTabState] = React.useState<{
     currentTab: string
     intentAt: TabLayout | null
     activeAt: TabLayout | null
-    prevActiveAt: TabLayout | null
   }>({
     activeAt: null,
     currentTab: 'phone',
     intentAt: null,
-    prevActiveAt: null,
   })
 
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
-  const setActiveIndicator = (activeAt: any) =>
-    setTabState({ ...tabState, prevActiveAt: tabState.activeAt, activeAt })
-  const { activeAt, intentAt, prevActiveAt, currentTab } = tabState
-
-  // 1 = right, 0 = nowhere, -1 = left
-  const direction = (() => {
-    if (!activeAt || !prevActiveAt || activeAt.x === prevActiveAt.x) {
-      return 0
-    }
-    return activeAt.x > prevActiveAt.x ? -1 : 1
-  })()
+  const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
+  const { activeAt, intentAt, currentTab } = tabState
 
   const handleOnInteraction: TabsTabProps['onInteraction'] = (type, layout) => {
     if (type === 'select') {
@@ -126,6 +123,12 @@ export default function LogsList() {
             justifyContent='center'
             backgroundColor="transparent"
           >
+
+            {/* 
+              TODO: Implementent different sorts, this button is going to open a pop up, 
+              preferably a modal, with the different options to sort the logs, 
+              try to copy the dialog from the figma prototype the best you can
+            */}
             <Button 
               marginHorizontal={10} 
               width={60}
@@ -216,22 +219,7 @@ export default function LogsList() {
               }}>
               <YStack margin={20}>
                 {/*This is the ListItem for the Device tab*/}
-                <ListItem
-                  hoverTheme
-                  pressTheme
-                  title="Log 1"
-                  subTitle="Log 1 description"
-                  icon={FileText}
-                  iconAfter={Download}
-                  color="$color9"
-                  scaleIcon={1.7}
-                  padding={10}
-                  size={16}
-                  borderWidth={0}
-                  borderBottomWidth={3}
-                  backgroundColor="$color1"
-                ></ListItem>
-                
+                <DisplayDeviceData data={data} error={error} status={status} />
               </YStack>
             </ScrollView>
           </Tabs.Content>
@@ -264,3 +252,76 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
     />
   )
 }
+
+const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
+  const logList = [];
+
+  if (!status.connected) {
+    return (
+      <View
+        height={500}
+        width="100%"
+        position="relative" // This is to make the text centered in the screen
+        justifyContent='center'
+        alignItems='center'
+      >
+      <Text
+        style={styles.noDeviceText}
+        >Device not connected
+        </Text>
+      </View>
+      );
+
+  }
+
+  if (!data || data == null || data.length === 0) {
+    return (
+      <View
+        height={500}
+        width="100%"
+        position="relative" // Th
+        justifyContent='center'
+        alignItems='center'
+      >
+      <Text
+        style={styles.noDeviceText}
+        >No logs in device
+        </Text>
+      </View>
+      );
+  }
+
+  for(let index = 0; index < data?.length; index++){
+    logList.push(
+      <ListItem
+        key={index}
+        hoverTheme
+        pressTheme
+        title={data[index].title}
+        subTitle={data[index].description}
+        icon={FileText}
+        iconAfter={ChevronRight}
+        color="$color9"
+        scaleIcon={1.7}
+        padding={10}
+        size={16}
+        borderWidth={0}
+        borderBottomWidth={3}
+        backgroundColor="$color1"
+        onPress={() => null /* TODO: Implement Download action, remember to take in account that there can be a selection of logs to download, see Figma prototype for more information */}
+      ></ListItem>
+    )
+  }
+
+  return logList;
+
+}
+
+
+
+const styles = StyleSheet.create({
+  noDeviceText: {
+    fontSize: 24,
+    color: "grey", 
+  }
+});

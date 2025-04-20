@@ -19,7 +19,7 @@ import { Home as HomeIcon,
         Circle,
         Square,
  } from '@tamagui/lucide-icons';
-import { connectToESP32 } from './new-log';
+
 
 export default function TabLayout() {
   const colorScheme = useTheme();
@@ -76,8 +76,6 @@ export default function TabLayout() {
           tabPress: (e) => {
             // Prevent default navigation
             e.preventDefault();
-            // Call device connection function instead
-            connectToESP32();
           },
         }}
         options={{
