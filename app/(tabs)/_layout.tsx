@@ -16,6 +16,8 @@ import { Home as HomeIcon,
         Logs as LogsIcon,
         Plus as PlusIcon,
         CircleDot,
+        Circle,
+        Square,
  } from '@tamagui/lucide-icons';
 import { connectToESP32 } from './new-log';
 
@@ -83,8 +85,13 @@ export default function TabLayout() {
           title: '',
           tabBarButton: (props) => (
             <CircularTabBarButton {...props}>
-              <CircleDot size={45} color="white" />
+              {/*If not recording circle */}
+              <Circle fill="white" size={24} color="white" />
+              {/*If recording square */}
+              {/*<Square fill="white" size={24} color="white" />*/}
+              {/**TODO: Add timer of the amount timestamp recording for the device, that will probably go on the Navbar */}
             </CircularTabBarButton>
+            
           ),
         }}
       />

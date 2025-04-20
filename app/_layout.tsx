@@ -2,7 +2,7 @@
 // Tamagui imports
 import { TamaguiProvider } from '@tamagui/core';
 import { config } from '../tamagui.config'
-
+import { PortalProvider } from 'tamagui';
 // Expo imports
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
@@ -55,6 +55,7 @@ export default function RootLayout() {
   }
   return (
     <TamaguiProvider config={config} defaultTheme='light'>
+      <PortalProvider shouldAddRootHost>
       <ThemeProvider>
         <StatusBarManager />
         <YStack flex={1} backgroundColor="$background">
@@ -80,7 +81,7 @@ export default function RootLayout() {
         </YStack>
   
       </ThemeProvider>
-      
+      </PortalProvider>
     </TamaguiProvider>
   );
 }
