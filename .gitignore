@@ -42,3 +42,6 @@ yarn-error.*
 app-example
 
 package-lock.json
+
+# prisma generated
+generated/

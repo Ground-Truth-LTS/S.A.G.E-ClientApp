@@ -1,0 +1,51 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Device {
+  device_id   Int   @id @default(autoincrement())
+  device_name String?
+
+  // A Device can have many Sessions
+  sessions    Session[]
+}
+
+model Session {
+  session_id     Int @id @default(autoincrement())
+  timestamp_start DateTime?
+  timestamp_end   DateTime?
+  location        String? 
+
+  // Relation to Device
+  device_id       Int
+  device          Device   @relation(fields: [device_id], references: [device_id])
+
+  // A Session can have multiple Processed_Sensor_Data entries
+  processedData   Processed_Sensor_Data[]
+}
+
+model Processed_Sensor_Data {
+  data_id     Int  @id @default(autoincrement())
+  timestamp   DateTime?
+
+  nitrogen    Float?
+  phosphorus  Float?
+  potassium   Float?
+  pH          Float?
+  moisture    Float?
+  temperature Float?
+
+  // Relation to Session
+  session_id  Int
+  session     Session  @relation(fields: [session_id], references: [session_id])
+}
+

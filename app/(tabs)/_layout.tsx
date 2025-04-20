@@ -19,6 +19,7 @@ import { Home as HomeIcon,
  } from '@tamagui/lucide-icons';
 import { connectToESP32 } from './new-log';
 
+
 export default function TabLayout() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
