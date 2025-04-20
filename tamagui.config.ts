@@ -55,7 +55,7 @@ export const config = createTamagui({
     // margin="$-sm"
     space: { '-sm': 8 },
     // radius="$none"
-    radius: { none: 0, sm: 3 },
+    radius: { none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
     color: { white: '#fff', black: '#000' },
   },
 

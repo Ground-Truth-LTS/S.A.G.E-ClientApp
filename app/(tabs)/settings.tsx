@@ -1,15 +1,16 @@
 // Tamagui imports
-import { View, Text, Switch, YStack, ListItem, ScrollView } from 'tamagui';
+import { View, Text, Switch, YStack, TextArea, ListItem, ScrollView, Dialog, Button, Sheet, Adapt, Input, H4, H3, H5 } from 'tamagui';
 import { addTheme, updateTheme } from '@tamagui/theme'
-import { ChevronRight } from '@tamagui/lucide-icons';
+import { ChevronDown, ChevronRight, ChevronUp } from '@tamagui/lucide-icons';
 import config from '../../tamagui.config';
 // React imports 
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { useEffect, useState } from 'react';
+import { memo, useEffect, useState } from 'react';
 
 // Custom imports
 import { useTheme } from '../../context/ThemeProvider';
+import PrivacyPolicy from '../content/privacypolicy';
 
 //import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -18,6 +19,9 @@ export default function Settings() {
   const [updatesSwitchOn, setUpdatesSwitchOn] = useState(false);
   const [notificationSwitchOn, setNotificationSwitchOn] = useState(false);
   const [statisticsSwitchOn, setStatisticsSwitchOn] = useState(false);
+
+  // Use for the Feedback sheet
+  const [open, setOpen] = useState(false);
 
   const insets = useSafeAreaInsets();
 
@@ -32,177 +36,290 @@ export default function Settings() {
 
   return (
   
-      <ScrollView height="100%" 
+    <ScrollView height="100%" 
+      backgroundColor="$color1" 
+      style={{
+        paddingTop: insets.top,
+        paddingBottom: insets.bottom,
+        paddingHorizontal: insets.left + insets.right,
+        flex: 1
+      }}
+      contentContainerStyle={{
+        paddingBottom: 110, // Add extra padding at the bottom for the tab bar
+      }}
+    >    
+    <View
+      backgroundColor="$color1" 
+      style={[styles.titleContainer]}
+      >
+      <Text fontSize={20} backgroundColor="$color1">Settings</Text>
+      {/* This is the bottom shadow element */}
+      <View style={styles.bottomShadow} pointerEvents="none" />
+    </View>
+  
+    
+      <YStack 
+        flex={1} 
         backgroundColor="$color1" 
-        style={{
-          paddingTop: insets.top,
-          paddingBottom: insets.bottom,
-          paddingHorizontal: insets.left + insets.right,
-          flex: 1
-        }}
-        contentContainerStyle={{
-          paddingBottom: 110, // Add extra padding at the bottom for the tab bar
-        }}
+        height="100%"
+        paddingHorizontal={24}
+        paddingTop={24}
       >    
-      <View
-        backgroundColor="$color1" 
-        style={[styles.titleContainer]}
-        >
-        <Text fontSize={20} backgroundColor="$color1">Settings</Text>
-        {/* This is the bottom shadow element */}
-        <View style={styles.bottomShadow} pointerEvents="none" />
-      </View>
-    
-      
-        <YStack 
-          flex={1} 
-          backgroundColor="$color1" 
-          height="100%"
-          paddingHorizontal={24}
-          paddingTop={24}
-        >    
-    
-          <ListItem
-     
-            title="Share Statistics"
-            subTitle="Your data will be used to create analytics and better the systems accuracy."
-            iconAfter={
-              <Switch 
-              size="$xl"  
-              defaultChecked={false} 
-              backgroundColor={statisticsSwitchOn ? "$accent4" : "$color5"}
-              onCheckedChange={ (toogle) => {
-                setStatisticsSwitchOn(toogle);
-              }}> 
-                    <Switch.Thumb backgroundColor="white"  />
-            </Switch> 
-            }
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>    
-
-          <ListItem
-            iconAfter={
-              <Switch 
-              size="$xl"  
-              defaultChecked={isDarkMode} 
-              backgroundColor={isDarkMode ? "$accent4" : "$color5"}
-              onCheckedChange={ () => {
-                toggleTheme();
-              }}> 
-                <Switch.Thumb backgroundColor="white"  />
-            </Switch> 
-            }
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          >Dark Mode</ListItem>    
-
-          <ListItem
-            title="Notifications"
-            subTitle="Let us notify you recent download time."
-            iconAfter={
-              <Switch 
-              size="$xl"  
-              defaultChecked={false} 
-              backgroundColor={notificationSwitchOn ? "$accent4" : "$color5"}
-              onCheckedChange={ (toogle) => {
-                setNotificationSwitchOn(toogle);
-              }}> 
-                    <Switch.Thumb backgroundColor="white"  />
-            </Switch> 
-            }
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>    
   
-
-          <ListItem
-            title="Automatic Updates"
-            subTitle="Permissions for available updates to be automatic."
-            iconAfter={              
+        <ListItem
+    
+          title="Share Statistics"
+          subTitle="Your data will be used to create analytics and better the systems accuracy."
+          iconAfter={
             <Switch 
-              size="$xl"  
-              defaultChecked={false} 
-              pressStyle={{backgroundColor: "$accent4"}}
-              backgroundColor={updatesSwitchOn ? "$accent4" : "$color5"}
-              onCheckedChange={ (toogle) => {
-                setUpdatesSwitchOn(toogle);
-              }}> 
-                <Switch.Thumb backgroundColor="white" />
-            </Switch>
-            }
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>    
+            size="$xl"  
+            defaultChecked={false} 
+            backgroundColor={statisticsSwitchOn ? "$accent4" : "$color5"}
+            onCheckedChange={ (toogle) => {
+              setStatisticsSwitchOn(toogle);
+            }}> 
+                  <Switch.Thumb backgroundColor="white"  />
+          </Switch> 
+          }
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+        ></ListItem>    
+
+        <ListItem
+          iconAfter={
+            <Switch 
+            size="$xl"  
+            defaultChecked={isDarkMode} 
+            backgroundColor={isDarkMode ? "$accent4" : "$color5"}
+            onCheckedChange={ () => {
+              toggleTheme();
+            }}> 
+              <Switch.Thumb backgroundColor="white"  />
+          </Switch> 
+          }
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+        >Dark Mode</ListItem>    
+
+        <ListItem
+          title="Notifications"
+          subTitle="Let us notify you recent download time."
+          iconAfter={
+            <Switch 
+            size="$xl"  
+            defaultChecked={false} 
+            backgroundColor={notificationSwitchOn ? "$accent4" : "$color5"}
+            onCheckedChange={ (toogle) => {
+              setNotificationSwitchOn(toogle);
+            }}> 
+                  <Switch.Thumb backgroundColor="white"  />
+          </Switch> 
+          }
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+        ></ListItem>    
+
+
+        <ListItem
+          title="Automatic Updates"
+          subTitle="Permissions for available updates to be automatic."
+          iconAfter={              
+          <Switch 
+            size="$xl"  
+            defaultChecked={false} 
+            pressStyle={{backgroundColor: "$accent4"}}
+            backgroundColor={updatesSwitchOn ? "$accent4" : "$color5"}
+            onCheckedChange={ (toogle) => {
+              setUpdatesSwitchOn(toogle);
+            }}> 
+              <Switch.Thumb backgroundColor="white" />
+          </Switch>
+          }
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+        ></ListItem>    
 
 
 
-          <ListItem
-            hoverTheme
-            pressTheme
-            title="Submit Review"
-            subTitle="Your data will be used to create analytics and better the systems accuracy."
-            iconAfter={ChevronRight}
-            color="$accent1"
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>    
+        <ListItem
+          hoverTheme
+          pressTheme
+          title="Submit Feedback"
+          subTitle="Your data will be used to create analytics and better the systems accuracy."
+          iconAfter={ChevronRight}
+          color="$accent1"
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+          onPress={() => setOpen(true)}
+        ></ListItem>    
 
-          <ListItem
-            hoverTheme
-            pressTheme
-            title="Connect to device"
-            subTitle="How to connect to Device PDF."
-            iconAfter={ChevronRight}
-            color="$accent1"
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>    
+        <SubmitFeedbackSheet open={open} setOpen={setOpen}/>
 
-          <ListItem
-            hoverTheme
-            pressTheme
-            title="Privacy Policy"
-            subTitle="See terms and Privacy Policy."
-            iconAfter={ChevronRight}
-            color="$accent1"
-            borderBottomWidth={1}
-            padding={24}
-            scaleIcon={1.5}
-            backgroundColor="$color1"
-          ></ListItem>
+        <ListItem
+          hoverTheme
+          pressTheme
+          title="Connect to device"
+          subTitle="How to connect to Device PDF."
+          iconAfter={ChevronRight}
+          color="$accent1"
+          borderBottomWidth={1}
+          padding={24}
+          scaleIcon={1.5}
+          backgroundColor="$color1"
+        ></ListItem>    
 
 
-
-
-
-          <View 
-            width="100%" 
-            alignItems='center' 
-            justifyContent='center'
-            paddingVertical={20}
-            style={[{backgroundColor: "$color1"}]}>
-            <Text style={[styles.subtitles]}>version 0.0.1</Text>
-          </View>
+        <Dialog modal>
+          <Dialog.Trigger asChild>     
+            <ListItem
+              hoverTheme
+              pressTheme
+              title="Privacy Policy"
+              subTitle="See terms and Privacy Policy."
+              iconAfter={ChevronRight}
+              color="$accent1"
+              borderBottomWidth={1}
+              padding={24}
+              scaleIcon={1.5}
+              backgroundColor="$color1"
+            ></ListItem>
+          </Dialog.Trigger>
           
-        </YStack>
+          <Adapt when="sm" platform="touch">
+            <Sheet animation="medium" disableDrag zIndex={200000} modal dismissOnSnapToBottom>
+              <Sheet.Frame  padding={8} gap={4}>
+                <Adapt.Contents />
+              </Sheet.Frame>
+              <Sheet.Overlay   
+                backgroundColor="$shadow6"
+                animation="slow"
+                enterStyle={{ opacity: 0 }}
+                exitStyle={{ opacity: 0 }}
+              />
+            </Sheet>
+          </Adapt>
+          
+          <Dialog.Portal>
+            <Dialog.Overlay
+              
+              key="overlay"
+              backgroundColor="$shadow6"
+              animation="slow"
+              enterStyle={{ opacity: 0 }}
+              exitStyle={{ opacity: 0 }}
+            />          
+            <PrivacyPolicy/>
+          </Dialog.Portal>
+        </Dialog>
 
-      </ScrollView>
-  
+        <View 
+          width="100%" 
+          alignItems='center' 
+          justifyContent='center'
+          paddingVertical={20}
+          style={[{backgroundColor: "$color1"}]}>
+          <Text style={[styles.subtitles]}>version 0.0.1</Text>
+        </View>
+        
+      </YStack>
+
+    </ScrollView>
+
   );
 }
+
+
+function SubmitFeedbackSheet({open, setOpen} :  { open: boolean, setOpen: (open: boolean) => void }) {
+
+  const [position, setPosition] = useState(0);
+
+  const snapPoints = [85, 50, 25];
+ 
+
+  return (
+      <Sheet
+        forceRemoveScrollEnabled={open}
+        modal={true}
+        open={open}
+        onOpenChange={setOpen}
+        snapPoints={snapPoints}
+        snapPointsMode='percent'
+        dismissOnSnapToBottom
+        position={position}
+        onPositionChange={setPosition}
+        zIndex={100_000}
+        animation="medium"
+      >
+        <Sheet.Overlay
+          animation="slow"
+          backgroundColor="$shadow6"
+          enterStyle={{ opacity: 0 }}
+          exitStyle={{ opacity: 0 }}
+        />
+
+        <Sheet.Handle />
+        <Sheet.Frame padding={10} gap={5}>
+          <SubmitFeedbackContent {...{ setOpen }} />
+        </Sheet.Frame>
+      </Sheet>
+  )
+}
+
+const SubmitFeedbackContent = memo(
+  ({ setOpen }: any) => {
+  return (
+    <>
+        <H5 
+          paddingTop={10}
+          paddingBottom={20}
+          paddingHorizontal={10}>Submit Feedback</H5>
+        <View  alignItems='center' justifyContent="center" paddingHorizontal={20}>
+          <TextArea 
+            width="100%" 
+            minHeight={100}
+            maxHeight={300}
+          /> 
+        
+        </View>
+        <View
+          alignItems="flex-end" padding={10}
+          justifyContent='flex-end' flexDirection='row'>
+
+            <Button 
+              width={100} 
+              height={40}
+              aria-label="close" 
+              borderRadius="$md"
+              onPress={() => setOpen(false)}> Close </Button>
+                   
+            <Button 
+              width={100} 
+              height={40}
+              aria-label="close" 
+              borderRadius="$md"
+              marginLeft={10}
+              backgroundColor={"$accent5"}
+              onPress={() => submitFeedBackForm()}> Submit </Button>
+        </View>
+      </>
+    )
+  }
+);
+
+function submitFeedBackForm() {
+  console.log("Feedback submitted!");
+}
+
 
 const styles = StyleSheet.create({
   headerImage: {
@@ -271,3 +388,4 @@ const styles = StyleSheet.create({
     backgroundColor: '$color5',
   }
 });
+

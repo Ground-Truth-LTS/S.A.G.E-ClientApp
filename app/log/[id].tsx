@@ -159,7 +159,7 @@ function FertilityChart({chartConfig} :  { chartConfig: any }) {
       color="$color8"
       fontSize={16} 
       marginBottom={15}
-      paddingLeft={10}>May 12, 2025 - Jun 12, 2025</H4>
+      paddingLeft={10}>May 12, 2025 - Jun 12, 2025</H4> 
 
     {/* Here goes the Chart */}
     <ChartCard value={"##"} content={content} ></ChartCard>
