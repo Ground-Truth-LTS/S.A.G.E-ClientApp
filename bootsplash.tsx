@@ -1,7 +1,12 @@
 import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, View, Image } from 'react-native';
 
-const BootSplashScreen = ({ onAnimationComplete }) => {
+type Props = {
+  onAnimationComplete: () => void;
+};
+
+
+const BootSplashScreen = ({ onAnimationComplete }: Props) => {
   const [opacity] = useState(new Animated.Value(1));
   const [spinValue] = useState(new Animated.Value(0));
 
@@ -57,7 +62,7 @@ const styles = StyleSheet.create({
     //backgroundColor: '#232323',
     backgroundColor: '#FFFFFF',
     alignItems: 'center',
-    justifyContent: 'start', // If the logo doesn't fit in different screens, change to 'center' and remove padding
+    justifyContent: 'flex-start', // If the logo doesn't fit in different screens, change to 'center' and remove padding
     paddingTop: 190, 
     zIndex: 999,
   },

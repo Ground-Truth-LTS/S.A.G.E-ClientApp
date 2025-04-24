@@ -8,7 +8,6 @@ import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui'
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
 import { useESP32Data } from '@/utils/esp_http_request';
-import { useEffect, useState } from 'react';
 
 
 const StyledTab = styled(Tabs.Tab, {
