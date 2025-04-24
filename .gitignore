@@ -45,5 +45,3 @@ package-lock.json
 
 # prisma generated
 generated/
-
-android/

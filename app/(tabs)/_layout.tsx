@@ -11,11 +11,9 @@ import {useTheme as isDarkProvider} from '@/context/ThemeProvider';
 // Tamagui
 import { GetThemeValueForKey, useTheme, View } from 'tamagui';
 // Icons
-import { Home as HomeIcon,
+import { 
         Settings as SettingsIcon,
         Logs as LogsIcon,
-        Plus as PlusIcon,
-        CircleDot,
         Circle,
         Square,
  } from '@tamagui/lucide-icons';
@@ -24,6 +22,9 @@ import { Home as HomeIcon,
 export default function TabLayout() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
+
+  // TODO: Add Alert when booting for the first time to show the instructions, you can use the Dialog Sheet from the System or using the React Native Alert Component, try do it as close as possible to the Figma model
+
   return (
     <Tabs
       screenOptions={{

@@ -10,7 +10,6 @@ import { StatusBar } from 'expo-status-bar';
 
 // React imports
 import { useEffect, useState } from 'react';
-import 'react-native-reanimated';
 
 
 // SQLite imports
@@ -26,8 +25,6 @@ import {
   dropAllTables } from '@/database/db';
 import * as SQLite from 'expo-sqlite';
 
-import { Square } from 'tamagui';
-import { get } from 'react-native/Libraries/TurboModule/TurboModuleRegistry';
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
 // SplashScreen.preventAutoHideAsync();
