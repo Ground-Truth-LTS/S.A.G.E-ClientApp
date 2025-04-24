@@ -1,8 +1,6 @@
 // Tamagui imports
 import { View, Text, Switch, YStack, TextArea, ListItem, ScrollView, Dialog, Button, Sheet, Adapt, Input, H4, H3, H5 } from 'tamagui';
-import { addTheme, updateTheme } from '@tamagui/theme'
-import { ChevronDown, ChevronRight, ChevronUp } from '@tamagui/lucide-icons';
-import config from '../../tamagui.config';
+import { ChevronRight} from '@tamagui/lucide-icons';
 // React imports 
 import { StyleSheet } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
@@ -11,6 +9,7 @@ import { memo, useEffect, useState } from 'react';
 // Custom imports
 import { useTheme } from '../../context/ThemeProvider';
 import PrivacyPolicy from '../content/privacypolicy';
+import Instructions from '../content/instructions';
 
 //import AsyncStorage from '@react-native-async-storage/async-storage';
 
@@ -167,18 +166,50 @@ export default function Settings() {
 
         <SubmitFeedbackSheet open={open} setOpen={setOpen}/>
 
-        <ListItem
-          hoverTheme
-          pressTheme
-          title="Connect to device"
-          subTitle="How to connect to Device PDF."
-          iconAfter={ChevronRight}
-          color="$accent1"
-          borderBottomWidth={1}
-          padding={24}
-          scaleIcon={1.5}
-          backgroundColor="$color1"
-        ></ListItem>    
+ 
+        <Dialog modal>
+          <Dialog.Trigger asChild>     
+          <ListItem
+              hoverTheme
+              pressTheme
+              title="Connect to device"
+              subTitle="How to connect to Device PDF."
+              iconAfter={ChevronRight}
+              color="$accent1"
+              borderBottomWidth={1}
+              padding={24}
+              scaleIcon={1.5}
+              backgroundColor="$color1"
+            ></ListItem>    
+
+          </Dialog.Trigger>
+          
+          <Adapt when="sm" platform="touch">
+            <Sheet animation="medium" disableDrag zIndex={200000} modal dismissOnSnapToBottom>
+              <Sheet.Frame  padding={8} gap={4}>
+                <Adapt.Contents />
+              </Sheet.Frame>
+              <Sheet.Overlay   
+                backgroundColor="$shadow6"
+                animation="slow"
+                enterStyle={{ opacity: 0 }}
+                exitStyle={{ opacity: 0 }}
+              />
+            </Sheet>
+          </Adapt>
+          
+          <Dialog.Portal>
+            <Dialog.Overlay
+              
+              key="overlay"
+              backgroundColor="$shadow6"
+              animation="slow"
+              enterStyle={{ opacity: 0 }}
+              exitStyle={{ opacity: 0 }}
+            />          
+            <Instructions/>
+          </Dialog.Portal>
+        </Dialog>
 
 
         <Dialog modal>
