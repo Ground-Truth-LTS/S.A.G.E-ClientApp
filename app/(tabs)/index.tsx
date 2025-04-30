@@ -4,10 +4,18 @@ import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
 import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button, Text } from 'tamagui';
-import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui';
+import {  AnimatePresence, Separator, SizableText, Tabs, styled, useTheme } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
 import { useESP32Data } from '@/utils/esp_http_request';
+import { useSelectionMode } from '@/context/SelectionModeProvider';
+import { 
+        CheckCircle,
+        Trash2,
+        Edit3,
+ } from '@tamagui/lucide-icons';
+
+ import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 
 
 const StyledTab = styled(Tabs.Tab, {
@@ -41,7 +49,9 @@ export default function LogsList() {
     currentTab: 'phone',
     intentAt: null,
   })
-
+  const colorScheme = useTheme();
+    const { isDarkMode } = isDarkProvider();
+  const { selectionMode, selectedLogs, toggleSelectionMode } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
   const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
@@ -58,6 +68,124 @@ export default function LogsList() {
   const navigateToLog = (id: string) => {
     navigation.navigate('log/[id]', { id });
   }
+
+const ToolBar: React.FC = () => {
+
+  // Selection mode action handlers
+  const handleSelectAll = () => {
+    // Logic to select all logs
+  };
+
+  const handleDelete = () => {
+    // Logic to delete selected logs
+  };
+
+  const handleDownload = () => {
+    // Logic to download selected logs
+  };
+
+  const handleRename = () => {
+    // Logic to rename selected log
+  };
+  return (
+  <View
+      style={{
+        position: 'absolute',
+        bottom: 0,
+        left: 0,
+        right: 0,
+        backgroundColor: isDarkMode ? colorScheme.color3?.get() : colorScheme.background?.get(),
+        elevation: 2,
+        marginBottom: 10,
+        marginHorizontal: 10,
+        borderRadius: 10,
+        height: 70,
+        paddingVertical: 10,
+        borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
+        borderWidth: isDarkMode ? 1 : 0,
+        zIndex: 1000,
+      }}
+    >
+        <XStack justifyContent="space-around" alignItems="center" height="100%">
+          {/* Selection All Button */}
+          <Button
+            unstyled
+            onPress={handleSelectAll}
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            height="100%"
+            padding={0}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <CheckCircle size={28} />
+            <Text marginTop={4} >
+              All
+            </Text>
+          </Button>
+          
+          {/* Eliminate Button */}
+          <Button
+            unstyled
+            onPress={handleDelete}
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            height="100%"
+            padding={0}
+            disabled={selectedLogs.length === 0}
+            opacity={selectedLogs.length === 0 ? 0.5 : 1}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <Trash2 size={28} />
+            <Text marginTop={4}>
+              Eliminate
+            </Text>
+          </Button>
+          
+          {/* Download Button */}
+          <Button
+            unstyled
+            onPress={handleDownload}
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            height="100%"
+            padding={0}
+            disabled={selectedLogs.length === 0}
+            opacity={selectedLogs.length === 0 ? 0.5 : 1}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <Download size={28} />
+            <Text marginTop={4}>
+              Download
+            </Text>
+          </Button>
+          
+          {/* Rename Button */}
+          <Button
+            unstyled
+            onPress={handleRename}
+            flexDirection="column"
+            justifyContent="center"
+            alignItems="center"
+            height="100%"
+            padding={0}
+            disabled={selectedLogs.length !== 1}
+            opacity={selectedLogs.length !== 1 ? 0.5 : 1}
+            pressStyle={{ opacity: 0.7 }}
+          >
+            <Edit3 size={28}/>
+            <Text marginTop={4}>
+              Rename
+            </Text>
+          </Button>
+        </XStack>
+      </View>
+    );
+  }
+
+
 
   return (
     <View 
@@ -143,12 +271,14 @@ export default function LogsList() {
               unstyled
               justifyContent='center'
               alignItems='center'
-              borderColor="$accent4"
+              borderColor={selectionMode ? "grey" : "$accent4"}
+              backgroundColor={selectionMode ? "grey" : "transparent"}
               borderWidth={2}
               active={currentTab !== "phone" /* This is breaking the background tab, this is intended */} 
               borderTopLeftRadius={4}
               borderBottomLeftRadius={4}
               onInteraction={handleOnInteraction}
+              disabled={selectionMode ? true : false}
             >
               <SizableText 
                 fontWeight={currentTab !== "phone" ? 500 : 600}
@@ -161,12 +291,14 @@ export default function LogsList() {
               unstyled
               justifyContent='center'
               alignItems='center'
-              borderColor="$accent4"
+              borderColor={selectionMode ? "grey" : "$accent4"} 
+              backgroundColor={selectionMode ? "grey" : "transparent"}
               borderWidth={2}
               active={currentTab !== "device"}
               borderTopRightRadius={4}
               borderBottomRightRadius={4}
               onInteraction={handleOnInteraction}
+              disabled={selectionMode ? true : false}
             >
               <SizableText 
                 fontWeight={currentTab !== "device" ? 500 : 600}
@@ -178,7 +310,10 @@ export default function LogsList() {
               backgroundColor="transparent" 
               color="$accent4"
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
-              > Select </Button>
+              onPress={toggleSelectionMode}
+              > 
+                {selectionMode ? "Cancel" : "Select"} 
+              </Button>
           </Tabs.List>
           </YStack>
           <Separator />
@@ -226,6 +361,7 @@ export default function LogsList() {
         
         </Tabs>
       </YStack>
+      {selectionMode && <ToolBar />}
     </View>
   );
 }
