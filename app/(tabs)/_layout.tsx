@@ -42,7 +42,7 @@ export default function TabLayout() {
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.2,
           shadowRadius: 10,
-          backgroundColor: isDarkMode ? colorScheme.background?.get() :  "$background" 
+          marginBottom: 10,
         },
         default: {
           backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),

@@ -20,7 +20,7 @@ class MainActivity : ReactActivity() {
     // @generated begin bootsplash-init - expo prebuild (DO NOT MODIFY) sync-f0f7dbc46f1d82498f47676b4197e1949dc7790f
     RNBootSplash.init(this, R.style.BootTheme)
     // @generated end bootsplash-init
-    super.onCreate(savedInstanceState)
+    super.onCreate(null)
   }
 
   /**

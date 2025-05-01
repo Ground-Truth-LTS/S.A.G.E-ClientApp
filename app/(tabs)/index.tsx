@@ -4,7 +4,7 @@ import { StyleSheet, Platform } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 // Tamagui imports
 import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button, Text } from 'tamagui';
-import {  AnimatePresence, Separator, SizableText, Tabs, styled, useTheme } from 'tamagui';
+import {  AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
 import { useESP32Data } from '@/utils/esp_http_request';
@@ -13,7 +13,9 @@ import {
         CheckCircle,
         Trash2,
         Edit3,
+        Check as CheckIcon
  } from '@tamagui/lucide-icons';
+import type { CheckboxProps } from 'tamagui'
 
  import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 
@@ -33,6 +35,7 @@ const StyledTab = styled(Tabs.Tab, {
 export default function LogsList() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const { bottom } = useSafeAreaInsets();
   const {
     data,
     loading,
@@ -50,13 +53,13 @@ export default function LogsList() {
     intentAt: null,
   })
   const colorScheme = useTheme();
-    const { isDarkMode } = isDarkProvider();
+  const { isDarkMode } = isDarkProvider();
   const { selectionMode, selectedLogs, toggleSelectionMode } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
   const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
   const { activeAt, intentAt, currentTab } = tabState
-
+  const selectedElements = [];
   const handleOnInteraction: TabsTabProps['onInteraction'] = (type, layout) => {
     if (type === 'select') {
       setActiveIndicator(layout)
@@ -95,8 +98,25 @@ const ToolBar: React.FC = () => {
         left: 0,
         right: 0,
         backgroundColor: isDarkMode ? colorScheme.color3?.get() : colorScheme.background?.get(),
-        elevation: 2,
-        marginBottom: 10,
+        ...Platform.select({
+          android: {
+            elevation: 4,
+            marginBottom: 10,
+          },
+          ios: {
+            position: 'absolute',
+            shadowColor: '#000',
+            shadowOffset: { width: 0, height: 4 },
+            shadowOpacity: 0.2,
+            shadowRadius: 10,
+            bottom: bottom,
+          },
+          default: {
+            // Default fallback styles if needed
+            elevation: 1, 
+          }
+        }),
+
         marginHorizontal: 10,
         borderRadius: 10,
         height: 70,
@@ -108,22 +128,26 @@ const ToolBar: React.FC = () => {
     >
         <XStack justifyContent="space-around" alignItems="center" height="100%">
           {/* Selection All Button */}
-          <Button
-            unstyled
-            onPress={handleSelectAll}
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-            padding={0}
-            pressStyle={{ opacity: 0.7 }}
+
+        <YStack alignItems='center' alignContent='space-evenly' className='flex-1 w-full h-full'>
+          <Checkbox 
+            id={"checkbox-all"} 
+            size="$xl5"
+            backgroundColor="$background"
+            borderWidth={2}
+            borderRadius={16}
+            borderColor="$color9"
+            disabled={selectedLogs.length === 0}
           >
-            <CheckCircle size={28} />
-            <Text marginTop={4} >
-              All
-            </Text>
-          </Button>
-          
+            <Checkbox.Indicator>
+              <CheckIcon color="$color9" />
+            </Checkbox.Indicator>
+          </Checkbox>
+          <Text >
+            All
+          </Text>
+        </YStack>
+  
           {/* Eliminate Button */}
           <Button
             unstyled
@@ -133,12 +157,12 @@ const ToolBar: React.FC = () => {
             alignItems="center"
             height="100%"
             padding={0}
-            disabled={selectedLogs.length === 0}
+            disabled={selectedLogs.length === 0 && selectedElements.length > 0}
             opacity={selectedLogs.length === 0 ? 0.5 : 1}
             pressStyle={{ opacity: 0.7 }}
           >
-            <Trash2 size={28} />
-            <Text marginTop={4}>
+            <Trash2 size={24} color="$color9" />
+            <Text color="$color9" >
               Eliminate
             </Text>
           </Button>
@@ -152,12 +176,12 @@ const ToolBar: React.FC = () => {
             alignItems="center"
             height="100%"
             padding={0}
-            disabled={selectedLogs.length === 0}
+            disabled={selectedLogs.length === 0 && selectedElements.length > 0}
             opacity={selectedLogs.length === 0 ? 0.5 : 1}
             pressStyle={{ opacity: 0.7 }}
           >
-            <Download size={28} />
-            <Text marginTop={4}>
+            <Download size={24} color="$color9" />
+            <Text color="$color9" >
               Download
             </Text>
           </Button>
@@ -175,8 +199,8 @@ const ToolBar: React.FC = () => {
             opacity={selectedLogs.length !== 1 ? 0.5 : 1}
             pressStyle={{ opacity: 0.7 }}
           >
-            <Edit3 size={28}/>
-            <Text marginTop={4}>
+            <Edit3 size={24} color="$color9" />
+            <Text color="$color9" >
               Rename
             </Text>
           </Button>
@@ -340,7 +364,7 @@ const ToolBar: React.FC = () => {
                       borderBottomWidth={3}
                       backgroundColor="$color1"
                       onPress={() => navigateToLog("2")}
-                    ></ListItem>
+                    ></ListItem>        
                     
               </YStack>  
             </ScrollView>
