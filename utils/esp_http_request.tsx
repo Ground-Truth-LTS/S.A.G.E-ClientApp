@@ -20,7 +20,7 @@ async function checkESP32Connection(): Promise<boolean> {
           return info !== null && 
                   'ssid' in info && 
                   info.ssid !== null && 
-                  (info.ssid.includes('ESP32') || info.ssid.includes('SAGE'));
+                  (info.ssid.includes('ESP32') || info.ssid.includes('SAGE') || info.ssid.includes('AndroidWifi'));
       }
       return false;
   } catch (error) {
