@@ -9,6 +9,9 @@
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
+      "entitlements": {
+        "com.apple.developer.networking.wifi-info": true
+      },
       "supportsTablet": true
     },
     "android": {
@@ -16,7 +19,14 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#662325"
       },
-      "package": "com.anonymous.sageclientapp"
+      "package": "com.anonymous.sageclientapp",
+      "permissions": [
+        "ACCESS_NETWORK_STATE",
+        "ACCESS_WIFI_STATE",
+        "CHANGE_WIFI_STATE",
+        "INTERNET"
+      ],
+      "networkSecurityConfig": "./network_security_config.xml"
     },
     "web": {
       "bundler": "metro",
