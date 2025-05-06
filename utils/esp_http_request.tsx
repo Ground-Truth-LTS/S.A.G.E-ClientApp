@@ -70,9 +70,51 @@ export function useESP32Data() {
           setConnectionStatus({ connected: isESP32, networkName });
         }
 
-        // ...rest of your existing code...
+          // if not on SAGE network, bail
+      if (!isESP32) {
+        if (!isCancelled) {
+          setError({ message: 'Not connected to SAGE device network', code: 'NETWORK_ERROR' });
+          setData(null);
+          setLoading(false);
+        }
+        return;
+      }
+
+      // 3. fetch logs
+      try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
+
+        const resp = await fetch('http://192.168.4.1/getAllLogs', {
+          method: 'GET',
+          headers: { Accept: 'application/json' },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (!resp.ok) {
+          throw new Error(`HTTP error: ${resp.status}`);
+        }
+
+        const json = await resp.json();
+        if (!isCancelled) setData(json);
       } catch (err: any) {
-        // ...existing error handling...
+        if (!isCancelled) {
+          setError({
+            message: err.message ?? 'Unable to communicate with device',
+            code: 'FETCH_ERROR',
+          });
+          setData(null);
+        }
+      } finally {
+        if (!isCancelled) setLoading(false);
+      }
+      } catch (err: any) {
+          setError({
+            message: err.message ?? 'Error with permission or network connection',
+            code: 'FETCH_ERROR',
+          });
+          setData(null);
       }
     }
     fetchLogs();
