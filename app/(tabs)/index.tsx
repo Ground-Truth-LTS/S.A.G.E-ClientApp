@@ -81,11 +81,12 @@ export default function LogsList() {
         transparent={true}
         animationType="slide"
         onRequestClose={() => setSortModalVisible(false)}
+        style={{ backgroundColor: isDarkMode ? "$color1" : "white" }}
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
         >
-          <View style={{ width: 200, height: 300, backgroundColor: 'white', borderRadius: 10 }}>
+          <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 300, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
             
             
             <H4 fontSize={24} paddingHorizontal={20} color="$accent2">Sort by:</H4>
@@ -94,14 +95,24 @@ export default function LogsList() {
             <View style={{ flex: 1 }}>
 
               <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form">
-                <YStack width={300} alignItems="center">
-                  <XStack width={300} alignItems="center">
-                    <RadioGroup.Item value="new-old" id="new-old-radio-item">
-                      <RadioGroup.Indicator />
+                <YStack alignItems="center" justifyContent='space-evenly' height={175} padding={10}>
+                  <XStack alignItems="center">
+                    <RadioGroup.Item value="new-old" id="new-old-radio-item" size="$xl2">
+                      <RadioGroup.Indicator scale={1.3} />
                     </RadioGroup.Item>
 
-                    <Label>
+                    <Label fontSize={18} paddingHorizontal={10}>
                       New to oldest 
+                    </Label>
+                  </XStack>
+
+                   <XStack alignItems="center">
+                    <RadioGroup.Item value="old-new" id="old-new-radio-item" size="$xl2">
+                      <RadioGroup.Indicator scale={1.3} />
+                    </RadioGroup.Item>
+
+                    <Label fontSize={18} paddingHorizontal={10}>
+                      Oldest to new 
                     </Label>
                   </XStack>
                 </YStack>
@@ -111,12 +122,11 @@ export default function LogsList() {
                 <Button 
                   padding={20} 
                   width={"50%"}
-                  backgroundColor="white" 
+                  backgroundColor={ isDarkMode ? "$color1" : "white"} 
                   onPress={() => setSortModalVisible(false)}
                   borderStartEndRadius={10}
                   borderColor="$accent2"
-                  borderBottomColor="white"
-                  borderLeftColor="white"
+                  borderWidth={0}
                   borderTopWidth={1}
                   pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
                   >
@@ -433,7 +443,8 @@ export default function LogsList() {
                       padding={10}
                       size={16}
                       borderWidth={0}
-                      borderBottomWidth={3}
+                      borderBottomWidth={1}
+                      borderColor="$color9"
                       backgroundColor="$color1"
                       onPress={() => navigateToLog("2")}
                     ></ListItem>        

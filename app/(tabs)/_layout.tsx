@@ -53,9 +53,9 @@ export default function TabLayout() {
           height: 70,
           paddingBottom: 10, // Try 0 or small value
           paddingTop: 10,
-          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
-          borderWidth: isDarkMode ? 1 : 0,
-          borderTopWidth: isDarkMode ? 0 : 1,
+          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'rgba(0, 0, 0, 0.1)',
+          borderWidth: isDarkMode ? 1 : 1.25,
+          borderTopWidth: isDarkMode ? 0 : 1.25,
         },
       }),
     }}>
