@@ -1,14 +1,13 @@
-// React imports 
-import React from 'react';
-import { StyleSheet, Platform } from 'react-native';
+// Expo and React imports 
+import React, { useState } from 'react';
+import { StyleSheet, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
-// Tamagui imports
-import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProps, StackProps, XStack, Button, Text } from 'tamagui';
-import {  AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox } from 'tamagui';
-import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
-import { useESP32Data } from '@/utils/esp_http_request';
-import { useSelectionMode } from '@/context/SelectionModeProvider';
+// Tamagui imports
+import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
+import { View, YStack, XStack, ScrollView} from 'tamagui';
+import { AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox, RadioGroup, Label } from 'tamagui';
+import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { 
         CheckCircle,
         Trash2,
@@ -16,9 +15,10 @@ import {
         Check as CheckIcon
  } from '@tamagui/lucide-icons';
 import type { CheckboxProps } from 'tamagui'
-
- import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
-
+// Components imports 
+import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
+import { useESP32Data } from '@/utils/esp_http_request';
+import { useSelectionMode } from '@/context/SelectionModeProvider';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -54,6 +54,7 @@ export default function LogsList() {
   })
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
+  const [sortModalVisible, setSortModalVisible] = useState(false);
   const { selectionMode, selectedLogs, toggleSelectionMode } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
@@ -72,141 +73,211 @@ export default function LogsList() {
     navigation.navigate('log/[id]', { id });
   }
 
-const ToolBar: React.FC = () => {
+  const SortModal: React.FC = () => {
 
-  // Selection mode action handlers
-  const handleSelectAll = () => {
-    // Logic to select all logs
-  };
+    return (
+      <Modal
+        visible={sortModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setSortModalVisible(false)}
+      >
+        <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+          backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+        >
+          <View style={{ width: 200, height: 300, backgroundColor: 'white', borderRadius: 10 }}>
+            
+            
+            <H4 fontSize={24} paddingHorizontal={20} color="$accent2">Sort by:</H4>
+            <Separator></Separator>
+            
+            <View style={{ flex: 1 }}>
 
-  const handleDelete = () => {
-    // Logic to delete selected logs
-  };
+              <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form">
+                <YStack width={300} alignItems="center">
+                  <XStack width={300} alignItems="center">
+                    <RadioGroup.Item value="new-old" id="new-old-radio-item">
+                      <RadioGroup.Indicator />
+                    </RadioGroup.Item>
 
-  const handleDownload = () => {
-    // Logic to download selected logs
-  };
+                    <Label>
+                      New to oldest 
+                    </Label>
+                  </XStack>
+                </YStack>
+              </RadioGroup>
 
-  const handleRename = () => {
-    // Logic to rename selected log
-  };
-  return (
-  <View
-      style={{
-        position: 'absolute',
-        bottom: 0,
-        left: 0,
-        right: 0,
-        backgroundColor: isDarkMode ? colorScheme.color3?.get() : colorScheme.background?.get(),
-        ...Platform.select({
-          android: {
-            elevation: 4,
-            marginBottom: 10,
-          },
-          ios: {
-            position: 'absolute',
-            shadowColor: '#000',
-            shadowOffset: { width: 0, height: 4 },
-            shadowOpacity: 0.2,
-            shadowRadius: 10,
-            bottom: bottom,
-          },
-          default: {
-            // Default fallback styles if needed
-            elevation: 1, 
-          }
-        }),
+              <View style={{ flex: 1, alignItems: 'flex-end' }} flexDirection='row'>        
+                <Button 
+                  padding={20} 
+                  width={"50%"}
+                  backgroundColor="white" 
+                  onPress={() => setSortModalVisible(false)}
+                  borderStartEndRadius={10}
+                  borderColor="$accent2"
+                  borderBottomColor="white"
+                  borderLeftColor="white"
+                  borderTopWidth={1}
+                  pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
+                  >
+                    <Text fontSize={18} color="$accent2">Close</Text>
+                </Button>
 
-        marginHorizontal: 10,
-        borderRadius: 10,
-        height: 70,
-        paddingVertical: 10,
-        borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
-        borderWidth: isDarkMode ? 1 : 0,
-        zIndex: 1000,
-      }}
-    >
-        <XStack justifyContent="space-around" alignItems="center" height="100%">
-          {/* Selection All Button */}
+                <Button 
+                  padding={20} 
+                  width={"50%"}
+                  backgroundColor="$accent2"
+                  onPress={() => setSortModalVisible(false)}
+                  borderEndEndRadius={10}
+                  pressStyle={{ backgroundColor: "$accent1", borderWidth: 0 }}
+                  >
+                    <Text fontSize={18} color="white">Apply</Text>
+                </Button>
+              </View>
+            </View>
 
-        <YStack alignItems='center' alignContent='space-evenly' className='flex-1 w-full h-full'>
-          <Checkbox 
-            id={"checkbox-all"} 
-            size="$xl5"
-            backgroundColor="$background"
-            borderWidth={2}
-            borderRadius={16}
-            borderColor="$color9"
-            disabled={selectedLogs.length === 0}
-          >
-            <Checkbox.Indicator>
-              <CheckIcon color="$color9" />
-            </Checkbox.Indicator>
-          </Checkbox>
-          <Text >
-            All
-          </Text>
-        </YStack>
-  
-          {/* Eliminate Button */}
-          <Button
-            unstyled
-            onPress={handleDelete}
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-            padding={0}
-            disabled={selectedLogs.length === 0 && selectedElements.length > 0}
-            opacity={selectedLogs.length === 0 ? 0.5 : 1}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <Trash2 size={24} color="$color9" />
-            <Text color="$color9" >
-              Eliminate
-            </Text>
-          </Button>
-          
-          {/* Download Button */}
-          <Button
-            unstyled
-            onPress={handleDownload}
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-            padding={0}
-            disabled={selectedLogs.length === 0 && selectedElements.length > 0}
-            opacity={selectedLogs.length === 0 ? 0.5 : 1}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <Download size={24} color="$color9" />
-            <Text color="$color9" >
-              Download
-            </Text>
-          </Button>
-          
-          {/* Rename Button */}
-          <Button
-            unstyled
-            onPress={handleRename}
-            flexDirection="column"
-            justifyContent="center"
-            alignItems="center"
-            height="100%"
-            padding={0}
-            disabled={selectedLogs.length !== 1}
-            opacity={selectedLogs.length !== 1 ? 0.5 : 1}
-            pressStyle={{ opacity: 0.7 }}
-          >
-            <Edit3 size={24} color="$color9" />
-            <Text color="$color9" >
-              Rename
-            </Text>
-          </Button>
-        </XStack>
-      </View>
+           
+    
+          </View>
+        </View>
+      </Modal>
     );
+  }
+
+  const ToolBar: React.FC = () => {
+    // Selection mode action handlers
+    const handleSelectAll = () => {
+      // Logic to select all logs
+    };
+
+    const handleDelete = () => {
+      // Logic to delete selected logs
+    };
+
+    const handleDownload = () => {
+      // Logic to download selected logs
+    };
+
+    const handleRename = () => {
+      // Logic to rename selected log
+    };
+    return (
+    <View
+        style={{
+          position: 'absolute',
+          bottom: 0,
+          left: 0,
+          right: 0,
+          backgroundColor: isDarkMode ? colorScheme.color3?.get() : colorScheme.background?.get(),
+          ...Platform.select({
+            android: {
+              elevation: 4,
+              marginBottom: 10,
+            },
+            ios: {
+              position: 'absolute',
+              shadowColor: '#000',
+              shadowOffset: { width: 0, height: 4 },
+              shadowOpacity: 0.2,
+              shadowRadius: 10,
+              bottom: bottom,
+            },
+            default: {
+              // Default fallback styles if needed
+              elevation: 1, 
+            }
+          }),
+
+          marginHorizontal: 10,
+          borderRadius: 10,
+          height: 70,
+          paddingVertical: 10,
+          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
+          borderWidth: isDarkMode ? 1 : 0,
+          zIndex: 1000,
+        }}
+      >
+          <XStack justifyContent="space-around" alignItems="center" height="100%">
+            {/* Selection All Button */}
+
+          <YStack alignItems='center' alignContent='space-evenly' className='flex-1 w-full h-full'>
+            <Checkbox 
+              id={"checkbox-all"} 
+              size="$xl5"
+              backgroundColor="$background"
+              borderWidth={2}
+              borderRadius={16}
+              borderColor="$color9"
+              disabled={selectedLogs.length === 0}
+            >
+              <Checkbox.Indicator>
+                <CheckIcon color="$color9" />
+              </Checkbox.Indicator>
+            </Checkbox>
+            <Text >
+              All
+            </Text>
+          </YStack>
+    
+            {/* Eliminate Button */}
+            <Button
+              unstyled
+              onPress={handleDelete}
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+              padding={0}
+              disabled={selectedLogs.length === 0 && selectedElements.length > 0}
+              opacity={selectedLogs.length === 0 ? 0.5 : 1}
+              pressStyle={{ opacity: 0.7 }}
+            >
+              <Trash2 size={24} color="$color9" />
+              <Text color="$color9" >
+                Eliminate
+              </Text>
+            </Button>
+            
+            {/* Download Button */}
+            <Button
+              unstyled
+              onPress={handleDownload}
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+              padding={0}
+              disabled={selectedLogs.length === 0 && selectedElements.length > 0}
+              opacity={selectedLogs.length === 0 ? 0.5 : 1}
+              pressStyle={{ opacity: 0.7 }}
+            >
+              <Download size={24} color="$color9" />
+              <Text color="$color9" >
+                Download
+              </Text>
+            </Button>
+            
+            {/* Rename Button */}
+            <Button
+              unstyled
+              onPress={handleRename}
+              flexDirection="column"
+              justifyContent="center"
+              alignItems="center"
+              height="100%"
+              padding={0}
+              disabled={selectedLogs.length !== 1}
+              opacity={selectedLogs.length !== 1 ? 0.5 : 1}
+              pressStyle={{ opacity: 0.7 }}
+            >
+              <Edit3 size={24} color="$color9" />
+              <Text color="$color9" >
+                Rename
+              </Text>
+            </Button>
+          </XStack>
+        </View>
+      );
   }
 
 
@@ -286,6 +357,7 @@ const ToolBar: React.FC = () => {
               icon={<ListFilter size={25} />} 
               backgroundColor="transparent" 
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
+              onPress={() => setSortModalVisible(true)}
               ></Button>
 
             <StyledTab
@@ -386,6 +458,7 @@ const ToolBar: React.FC = () => {
         </Tabs>
       </YStack>
       {selectionMode && <ToolBar />}
+      <SortModal/>
     </View>
   );
 }
