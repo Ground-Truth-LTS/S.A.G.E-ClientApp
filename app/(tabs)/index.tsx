@@ -12,6 +12,7 @@ import {
         CheckCircle,
         Trash2,
         Edit3,
+        X,
         Check as CheckIcon
  } from '@tamagui/lucide-icons';
 import type { CheckboxProps } from 'tamagui'
@@ -363,7 +364,7 @@ export default function LogsList() {
               try to copy the dialog from the figma prototype the best you can
             */}
             <Button 
-              marginHorizontal={10} 
+              marginRight={30} 
               width={60}
               icon={<ListFilter size={25} />} 
               backgroundColor="transparent" 
@@ -413,13 +414,13 @@ export default function LogsList() {
             </StyledTab>
             <Button 
               width={60}
-              marginHorizontal={10} 
+              marginLeft={25} 
               backgroundColor="transparent" 
               color="$accent4"
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
               onPress={toggleSelectionMode}
               > 
-                {selectionMode ? "Cancel" : "Select"} 
+                {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1">Select</Text>} 
               </Button>
           </Tabs.List>
           </YStack>
