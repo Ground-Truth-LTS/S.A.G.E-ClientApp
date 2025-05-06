@@ -1,6 +1,7 @@
 // Add this to your imports
 import { useState, useEffect } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
+import * as FileSystem from 'expo-file-system';
 
 // NetInfo library doc: https://github.com/react-native-netinfo/react-native-netinfo
 
@@ -89,4 +90,28 @@ export function useESP32Data() {
   }, []);
 
   return { data, loading, error, connectionStatus };
+}
+
+export async function downloadESP32CSVFile(
+  fileNames: string | string[],
+  baseUrl = 'http://192.168.4.1'
+) {
+  const names = Array.isArray(fileNames) ? fileNames : [fileNames];
+
+  const sageDir = FileSystem.documentDirectory + 'S.A.G.E';
+  const dirInfo = await FileSystem.getInfoAsync(sageDir);
+  if (!dirInfo.exists) {
+    await FileSystem.makeDirectoryAsync(sageDir, { intermediates: true });
+  }
+
+  const downloads = names.map(async (fileName) => {
+    const cleanName = fileName.startsWith('/') ? fileName.slice(1) : fileName;
+    const remoteUrl = `${baseUrl}/${cleanName}`;
+    const localUri  = `${sageDir}/${cleanName}`;
+
+    const { status, uri } = await FileSystem.downloadAsync(remoteUrl, localUri);
+    if (status !== 200) {
+      throw new Error(`Failed to download "${cleanName}" (status ${status})`);
+    }
+  });
 }

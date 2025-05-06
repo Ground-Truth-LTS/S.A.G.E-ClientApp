@@ -7,7 +7,7 @@ import { View, ListItem, YStack, useListItem, ScrollView, TabLayout, TabsTabProp
 import {  AnimatePresence, Separator, SizableText, Tabs, styled } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { useNavigation } from 'expo-router';
-import { useESP32Data } from '@/utils/esp_http_request';
+import { useESP32Data, downloadESP32CSVFile } from '@/utils/esp_http_request';
 
 
 const StyledTab = styled(Tabs.Tab, {
@@ -307,7 +307,10 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         borderWidth={0}
         borderBottomWidth={3}
         backgroundColor="$color1"
-        onPress={() => null /* TODO: Implement Download action, remember to take in account that there can be a selection of logs to download, see Figma prototype for more information */}
+        onPress={ () => {
+          downloadESP32CSVFile(data[index].fileName)
+        }
+        }
       ></ListItem>
     )
   }
