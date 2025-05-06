@@ -42,7 +42,7 @@ export default function TabLayout() {
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.2,
           shadowRadius: 10,
-          backgroundColor: isDarkMode ? colorScheme.background?.get() :  "$background" 
+          marginBottom: 10,
         },
         default: {
           backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
@@ -53,9 +53,9 @@ export default function TabLayout() {
           height: 70,
           paddingBottom: 10, // Try 0 or small value
           paddingTop: 10,
-          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
-          borderWidth: isDarkMode ? 1 : 0,
-          borderTopWidth: isDarkMode ? 0 : 1,
+          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'rgba(0, 0, 0, 0.1)',
+          borderWidth: isDarkMode ? 1 : 1.25,
+          borderTopWidth: isDarkMode ? 0 : 1.25,
         },
       }),
     }}>
