@@ -205,30 +205,34 @@ export default function LogsList() {
           borderRadius: 10,
           height: 70,
           paddingVertical: 10,
-          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'transparent',
-          borderWidth: isDarkMode ? 1 : 0,
+          borderColor: isDarkMode ? colorScheme.accent10?.get() : colorScheme.color9?.get(),
+          borderWidth: isDarkMode ? 1 : .5,
+          borderTopWidth: .2,
           zIndex: 1000,
         }}
       >
           <XStack justifyContent="space-around" alignItems="center" height="100%">
             {/* Selection All Button */}
 
-          <YStack alignItems='center' height="100%" justifyContent='space-between' className='flex-1 w-full h-full'>
+          <YStack 
+            alignItems='center' 
+            height="100%" 
+            justifyContent='space-between'        
+            opacity={selectedLogs.length === 0 ? 0.5 : 1}>
             <Checkbox 
               id={"checkbox-all"} 
               size="$xl3"
               backgroundColor="$background"
-              borderWidth={2}
               borderRadius={16}
               borderColor="$color9"
-              opacity={selectedLogs.length === 0 ? 0.5 : 1}
+              borderWidth={selectedLogs.length === 0 ? 0.5 : 2}
               disabled={selectedLogs.length === 0}
             >
               <Checkbox.Indicator > 
                 <CheckIcon color="$color9" />
               </Checkbox.Indicator>
             </Checkbox>
-            <Text color="$color9"  opacity={selectedLogs.length === 0 ? 0.5 : 1}>
+            <Text color="$color9" >
               All
             </Text>
           </YStack>
