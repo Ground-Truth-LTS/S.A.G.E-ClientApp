@@ -123,5 +123,6 @@ export function useESP32Data() {
     };
   }, []);
 
+  console.log( { data, loading, error, connectionStatus })
   return { data, loading, error, connectionStatus };
 }

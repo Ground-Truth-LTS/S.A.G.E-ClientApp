@@ -98,7 +98,7 @@ export default function LogsList() {
             <View style={{ flex: 1 }}>
 
               <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form">
-                <YStack alignItems="center" justifyContent='space-evenly' height={175} padding={10}>
+                <YStack alignItems="center" justifyContent='space-evenly' height={100} padding={10}>
                   <XStack alignItems="center">
                     <RadioGroup.Item value="new-old" id="new-old-radio-item" size="$xl2">
                       <RadioGroup.Indicator scale={1.3} />
@@ -323,108 +323,106 @@ export default function LogsList() {
           overflow="hidden"
         >
           <YStack>
-          <AnimatePresence>
-          {intentAt && (
-            <TabsRovingIndicator
-              borderRadius={4}
-              marginVertical={10}
-              marginHorizontal={10}
-              width={intentAt.width}
-              height={intentAt.height}
-              x={intentAt.x}
-              y={intentAt.y}
-            />
-          )}
-          </AnimatePresence>
-          <AnimatePresence>
-          {activeAt && (
-            <TabsRovingIndicator
-              borderRadius={4}
-              marginVertical={10}
-              marginHorizontal={10}
-              theme="accent"
-              width={activeAt.width}
-              height={activeAt.height}
-              x={activeAt.x}
-              y={activeAt.y}
-            />
-          )}
-          </AnimatePresence>
-
-          <Tabs.List
-            disablePassBorderRadius
-            loop={false}
-            marginVertical={10}
-            marginHorizontal={10}
-            justifyContent='center'
-            backgroundColor="transparent"
-          >
-
-            {/* 
+         
+          <XStack 
+            width="100%" 
+            justifyContent='space-evenly' >
+               {/* 
               TODO: Implementent different sorts, this button is going to open a pop up, 
               preferably a modal, with the different options to sort the logs, 
               try to copy the dialog from the figma prototype the best you can
             */}
             <Button 
-              marginRight={30} 
+              icon={<ListFilter color="$color10" size={25} />} 
               width={60}
-              icon={<ListFilter size={25} />} 
+              paddingLeft={10}
               backgroundColor="transparent" 
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
               onPress={() => setSortModalVisible(true)}
               ></Button>
-
-            <StyledTab
-              value="phone"
-              height={40}
-              width={100}
-              unstyled
-              justifyContent='center'
+            <Tabs.List
+              disablePassBorderRadius
+              loop={false}
+              marginVertical={20}
+              backgroundColor="transparent"
               alignItems='center'
-              borderColor={selectionMode ? "grey" : "$accent4"}
-              backgroundColor={selectionMode ? "grey" : "transparent"}
-              borderWidth={2}
-              active={currentTab !== "phone" /* This is breaking the background tab, this is intended */} 
-              borderTopLeftRadius={4}
-              borderBottomLeftRadius={4}
-              onInteraction={handleOnInteraction}
-              disabled={selectionMode ? true : false}
             >
-              <SizableText 
-                fontWeight={currentTab !== "phone" ? 500 : 600}
-              >Phone</SizableText>
-            </StyledTab>
-            <StyledTab
-              value="device"
-              height={40}    
-              width={100}
-              unstyled
-              justifyContent='center'
-              alignItems='center'
-              borderColor={selectionMode ? "grey" : "$accent4"} 
-              backgroundColor={selectionMode ? "grey" : "transparent"}
-              borderWidth={2}
-              active={currentTab !== "device"}
-              borderTopRightRadius={4}
-              borderBottomRightRadius={4}
-              onInteraction={handleOnInteraction}
-              disabled={selectionMode ? true : false}
-            >
-              <SizableText 
-                fontWeight={currentTab !== "device" ? 500 : 600}
-              >Device</SizableText>
-            </StyledTab>
+            <AnimatePresence>
+            {intentAt && (
+              <TabsRovingIndicator
+                borderRadius={4}
+                theme="accent"
+                width={intentAt.width}
+                height={intentAt.height}
+                x={intentAt.x}
+                y={intentAt.y}
+              />
+            )}
+            </AnimatePresence>
+            <AnimatePresence>
+            {activeAt && (
+              <TabsRovingIndicator
+                borderRadius={4}
+                theme="accent"
+                width={activeAt.width}
+                height={activeAt.height}
+                x={activeAt.x}
+                y={activeAt.y}
+              />
+            )}
+            </AnimatePresence>
+              <StyledTab
+                value="phone"
+                height={40}
+                width={100}
+                unstyled
+                justifyContent='center'
+                alignItems='center'
+                borderColor={selectionMode ? "grey" : "$accent4"}
+                backgroundColor={selectionMode ? "grey" : "transparent"}
+                borderWidth={2}
+                active={currentTab !== "phone" /* This is breaking the background tab, this is intended */} 
+                borderTopLeftRadius={4}
+                borderBottomLeftRadius={4}
+                onInteraction={handleOnInteraction}
+                disabled={selectionMode ? true : false}
+              >
+                <SizableText 
+                  fontWeight={currentTab !== "phone" ? 500 : 600}
+                >Phone</SizableText>
+              </StyledTab>
+              <StyledTab
+                value="device"
+                height={40}    
+                width={100}
+                unstyled
+                justifyContent='center'
+                alignItems='center'
+                borderColor={selectionMode ? "grey" : "$accent4"} 
+                backgroundColor={selectionMode ? "grey" : "transparent"}
+                borderWidth={2}
+                active={currentTab !== "device"}
+                borderTopRightRadius={4}
+                borderBottomRightRadius={4}
+                onInteraction={handleOnInteraction}
+                disabled={selectionMode ? true : false}
+              >
+                <SizableText 
+                  fontWeight={currentTab !== "device" ? 500 : 600}
+                >Device</SizableText>
+              </StyledTab>
+        
+            </Tabs.List>
             <Button 
-              width={60}
-              marginLeft={25} 
-              backgroundColor="transparent" 
-              color="$accent4"
-              pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
-              onPress={toggleSelectionMode}
-              > 
-                {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1">Select</Text>} 
-              </Button>
-          </Tabs.List>
+            backgroundColor="transparent" 
+            color="$accent4"
+            pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
+            onPress={toggleSelectionMode}
+            width={60}
+            > 
+              {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1" paddingRight={10}>Select</Text>} 
+            </Button>
+          </XStack>
           </YStack>
           <Separator />
     
@@ -441,14 +439,14 @@ export default function LogsList() {
                       title="Log 2"
                       subTitle="Log 2 description"
                       icon={FileText}
-                      iconAfter={ChevronRight}
-                      color="$color9"
+                      iconAfter={<ChevronRight color="$color9"></ChevronRight>}
+                      color="$color7"
                       scaleIcon={1.7}
                       padding={10}
                       size={16}
                       borderWidth={0}
                       borderBottomWidth={1}
-                      borderColor="$color9"
+                      borderColor="$color6"
                       backgroundColor="$color1"
                       onPress={() => navigateToLog("2")}
                     ></ListItem>        
@@ -545,16 +543,17 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         key={index}
         hoverTheme
         pressTheme
-        title={data[index].title}
-        subTitle={data[index].description}
+        title={data[index].fileName}
+        subTitle={data[index].fileName}
         icon={FileText}
-        iconAfter={ChevronRight}
-        color="$color9"
+        iconAfter={<Download color="$color9"></Download>}
+        color="$color7"
         scaleIcon={1.7}
         padding={10}
         size={16}
         borderWidth={0}
-        borderBottomWidth={3}
+        borderBottomWidth={1}
+        borderColor="$color6"
         backgroundColor="$color1"
         onPress={() => null /* TODO: Implement Download action, remember to take in account that there can be a selection of logs to download, see Figma prototype for more information */}
       ></ListItem>
