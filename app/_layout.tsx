@@ -33,6 +33,7 @@ import BootSplash from '../bootsplash';
 import { ThemeProvider, useTheme as isDarkProvider } from '../context/ThemeProvider';
 import { YStack } from 'tamagui';
 import { SelectionModeProvider } from '@/context/SelectionModeProvider';
+import { ToastProvider } from '@tamagui/toast';
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -55,31 +56,32 @@ export default function RootLayout() {
     <TamaguiProvider config={config} defaultTheme='light'>
       <PortalProvider shouldAddRootHost>
       <ThemeProvider>
-        <SelectionModeProvider>
-          <StatusBarManager />
-          <YStack flex={1} backgroundColor="$background">
-            <Stack
-              screenOptions={{
-                // contentStyle sets the background behind your screen component
-                contentStyle: {
-                  backgroundColor: '$background',
-                },
-                // headerStyle sets the background of the native header bar
-              }}
-            >
-              <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
-              <Stack.Screen name="+not-found" />
-            </Stack>
-      
-            {splashVisible && (
-              <BootSplash.BootSplashScreen
-                onAnimationComplete={() => setSplashVisible(false)}
-              />
-            )}
-              
-          </YStack>
-        </SelectionModeProvider>
-  
+        <ToastProvider>
+          <SelectionModeProvider>
+            <StatusBarManager />
+            <YStack flex={1} backgroundColor="$background">
+              <Stack
+                screenOptions={{
+                  // contentStyle sets the background behind your screen component
+                  contentStyle: {
+                    backgroundColor: '$background',
+                  },
+                  // headerStyle sets the background of the native header bar
+                }}
+              >
+                <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
+                <Stack.Screen name="+not-found" />
+              </Stack>
+        
+              {splashVisible && (
+                <BootSplash.BootSplashScreen
+                  onAnimationComplete={() => setSplashVisible(false)}
+                />
+              )}
+                
+            </YStack>
+          </SelectionModeProvider>
+        </ToastProvider>
       </ThemeProvider>
       </PortalProvider>
     </TamaguiProvider>

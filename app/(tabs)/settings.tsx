@@ -81,12 +81,15 @@ export default function Settings() {
           </Switch> 
           }
           borderBottomWidth={1}
+          borderColor="$color6"
           padding={24}
           scaleIcon={1.5}
           backgroundColor="$color1"
         ></ListItem>    
 
         <ListItem
+        title=""
+
           iconAfter={
             <Switch 
             size="$xl"  
@@ -98,7 +101,8 @@ export default function Settings() {
               <Switch.Thumb backgroundColor="white"  />
           </Switch> 
           }
-          borderBottomWidth={1}
+          borderBottomWidth={1.1}
+          borderColor="$color6"
           padding={24}
           scaleIcon={1.5}
           backgroundColor="$color1"
