@@ -89,7 +89,7 @@ export default function LogsList() {
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
           backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
         >
-          <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 300, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
+          <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 225, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
             
             
             <H4 fontSize={24} paddingHorizontal={20} color="$accent2">Sort by:</H4>
