@@ -25,8 +25,7 @@
         "ACCESS_WIFI_STATE",
         "CHANGE_WIFI_STATE",
         "INTERNET"
-      ],
-      "networkSecurityConfig": "./network_security_config.xml"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -39,9 +38,20 @@
         "react-native-bootsplash",
         {
           "assetsDir": "assets/bootsplash"
-        }
+        }        
       ],
-      "expo-sqlite"
+      "expo-sqlite",
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "usesCleartextTraffic": true
+          },
+          "ios": {
+            "flipper": true
+          }
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
