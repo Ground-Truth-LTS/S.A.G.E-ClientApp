@@ -2,9 +2,6 @@
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
 
-Important modules:
-- [react-native-ble-manager](https://github.com/innoveit/react-native-ble-manager) -> Use for bluetooth low power
-
 ## Get started
 
 1. Install dependencies
