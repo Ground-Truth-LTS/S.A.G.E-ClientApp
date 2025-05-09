@@ -367,6 +367,7 @@ export default function LogsList() {
               backgroundColor="transparent" 
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
               onPress={() => setSortModalVisible(true)}
+              disabled={selectionMode}
               ></Button>
             <Tabs.List
               disablePassBorderRadius
@@ -490,7 +491,11 @@ export default function LogsList() {
                         borderBottomWidth={1}
                         borderColor="$color6"
                         backgroundColor="$color1"
-                        onPress={() => navigateToLog(log.session_id?.toString() ?? `${index + 1}`)}
+                        onPress={() => 
+                          {
+                            if(!selectionMode)
+                              navigateToLog(log.session_id?.toString() ?? `${index + 1}`)
+                          }}
                       />
                     ))}
               </YStack>  
