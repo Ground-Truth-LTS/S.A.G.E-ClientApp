@@ -242,15 +242,15 @@ export default function LogsList() {
             alignItems='center' 
             height="100%" 
             justifyContent='space-between'        
-            opacity={selectedLogs.length === 0 ? 0.5 : 1}>
+            opacity={logs.length === 0 ? 0.5 : 1}>
             <Checkbox 
               id={"checkbox-all"} 
               size="$xl3"
               backgroundColor="$background"
               borderRadius={16}
               borderColor="$color9"
-              borderWidth={selectedLogs.length === 0 ? 0.5 : 2}
-              disabled={selectedLogs.length === 0}
+              borderWidth={logs.length === 0 ? 0.5 : 2}
+              disabled={logs.length === 0}
             >
               <Checkbox.Indicator > 
                 <CheckIcon color="$color9" />
@@ -468,7 +468,19 @@ export default function LogsList() {
                         pressTheme
                         title={log.title ?? `Log ${index + 1}`}
                         subTitle={log.description ?? `Log ${index + 1} description`}
-                        icon={FileText}
+                        icon={ selectionMode ? (            
+                          <Checkbox 
+                            id={"checkbox-"+log.session_id} 
+                            size="$xl3"
+                            backgroundColor="$background"
+                            borderRadius={16}
+                            borderColor="$color9"
+                            borderWidth={2}
+                          >
+                            <Checkbox.Indicator > 
+                              <CheckIcon color="$color9" />
+                            </Checkbox.Indicator>
+                          </Checkbox>) : FileText}
                         iconAfter={<ChevronRight color="$color9"></ChevronRight>}
                         color="$color7"
                         scaleIcon={1.7}
