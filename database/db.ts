@@ -1,5 +1,4 @@
 import * as SQLite from 'expo-sqlite';
-import { json } from 'stream/consumers';
 
 // DB Creation
 export const createDB = async  () => {
@@ -75,7 +74,7 @@ export const getDevices = async (db : SQLite.SQLiteDatabase) => {
 }
 
 // Get Session data
-export const getSession = async (db : SQLite.SQLiteDatabase) => {
+export const getAllSession = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Session');
   return JSON.stringify(allRows);
 }
@@ -84,11 +83,12 @@ export const getSessionByTimeframe = async (db : SQLite.SQLiteDatabase,
   start: string,
   end: string
 ) => {
-  const allRows = await db.getAllAsync(`SELECT *
-          FROM Session
-         WHERE timestamp_start >= ?
-           AND timestamp_end   <= ?
-         ORDER BY timestamp_start`, start, end);
+  const allRows = await db.getAllAsync(
+    ` SELECT *
+        FROM Session
+      WHERE timestamp_start >= ?
+        AND timestamp_end   <= ?
+      ORDER BY timestamp_start`, start, end);
   return JSON.stringify(allRows);
 }
 

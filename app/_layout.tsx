@@ -7,7 +7,7 @@ import { PortalProvider } from 'tamagui';
 import { useFonts } from 'expo-font';
 import { Stack } from 'expo-router';
 import { StatusBar } from 'expo-status-bar';
-
+import { SQLiteProvider } from 'expo-sqlite';
 // React imports
 import { useEffect, useState } from 'react';
 
@@ -18,7 +18,7 @@ import {
   insertDevice,
   insertDummyData,
   getDevices,
-  getSession,
+  getAllSession,
   getSensorData,
   deleteAllFromDevice,
   getSessionByTimeframe,
@@ -54,36 +54,40 @@ export default function RootLayout() {
   }
   return (
     <TamaguiProvider config={config} defaultTheme='light'>
-      <PortalProvider shouldAddRootHost>
-      <ThemeProvider>
-        <ToastProvider>
-          <SelectionModeProvider>
-            <StatusBarManager />
-            <YStack flex={1} backgroundColor="$background">
-              <Stack
-                screenOptions={{
-                  // contentStyle sets the background behind your screen component
-                  contentStyle: {
-                    backgroundColor: '$background',
-                  },
-                  // headerStyle sets the background of the native header bar
-                }}
-              >
-                <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
-                <Stack.Screen name="+not-found" />
-              </Stack>
-        
-              {splashVisible && (
-                <BootSplash.BootSplashScreen
-                  onAnimationComplete={() => setSplashVisible(false)}
-                />
-              )}
-                
-            </YStack>
-          </SelectionModeProvider>
-        </ToastProvider>
-      </ThemeProvider>
-      </PortalProvider>
+      <SQLiteProvider databaseName='sage.db' onInit={ async (db) => {
+        await createDB();
+      }}>
+        <PortalProvider shouldAddRootHost>
+        <ThemeProvider>
+          <ToastProvider>
+            <SelectionModeProvider>
+              <StatusBarManager />
+              <YStack flex={1} backgroundColor="$background">
+                <Stack
+                  screenOptions={{
+                    // contentStyle sets the background behind your screen component
+                    contentStyle: {
+                      backgroundColor: '$background',
+                    },
+                    // headerStyle sets the background of the native header bar
+                  }}
+                >
+                  <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
+                  <Stack.Screen name="+not-found" />
+                </Stack>
+          
+                {splashVisible && (
+                  <BootSplash.BootSplashScreen
+                    onAnimationComplete={() => setSplashVisible(false)}
+                  />
+                )}
+                  
+              </YStack>
+            </SelectionModeProvider>
+          </ToastProvider>
+        </ThemeProvider>
+        </PortalProvider>
+      </SQLiteProvider>
     </TamaguiProvider>
   );
 }
