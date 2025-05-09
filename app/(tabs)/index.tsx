@@ -1,8 +1,9 @@
 // Expo and React imports 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 // Tamagui imports
 import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
 import { View, YStack, XStack, ScrollView} from 'tamagui';
@@ -17,10 +18,12 @@ import {
         Check as CheckIcon
  } from '@tamagui/lucide-icons';
 import type { CheckboxProps } from 'tamagui'
-// Components imports 
+// Custom Utils, Components and Providers 
 import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 import { useESP32Data } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
+// Database queries
+import { getAllSession } from '@/database/db';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -35,6 +38,9 @@ const StyledTab = styled(Tabs.Tab, {
 
 
 export default function LogsList() {
+  const db = useSQLiteContext();
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logs, setLogs] = useState([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { bottom } = useSafeAreaInsets();
@@ -44,6 +50,24 @@ export default function LogsList() {
     error,
     connectionStatus: status,
   } = useESP32Data();
+
+  useEffect(() => {
+    // Logs is equivalent
+    async function loadLogs(){
+      try {
+        const logsRequest = await getAllSession(db);
+        setLogs(JSON.parse(logsRequest));
+        console.log("Loading logs from local database", logs, logsRequest, JSON.parse(logsRequest));
+      }catch (error) {
+        console.error("Error loading logs: ", error);
+
+      } finally {
+        setLoadingLogs(false);
+      }
+    }
+    loadLogs();
+  }, [db])
+
   // Refer to tamagui doc https://tamagui.dev/ui/tabs for more information about the Tabs component, the tabs animation were done from the tabs doc
   const [tabState, setTabState] = React.useState<{
     currentTab: string
@@ -437,24 +461,26 @@ export default function LogsList() {
               }}>
                 <YStack margin={20}>
                     {/*This is the ListItem for the Mobile tab*/}
-                    <ListItem
-                      hoverTheme
-                      pressTheme
-                      title="Log 2"
-                      subTitle="Log 2 description"
-                      icon={FileText}
-                      iconAfter={<ChevronRight color="$color9"></ChevronRight>}
-                      color="$color7"
-                      scaleIcon={1.7}
-                      padding={10}
-                      size={16}
-                      borderWidth={0}
-                      borderBottomWidth={1}
-                      borderColor="$color6"
-                      backgroundColor="$color1"
-                      onPress={() => navigateToLog("2")}
-                    ></ListItem>        
-                    
+                    {logs?.map((log: any, index: number) => (
+                      <ListItem
+                        key={log.session_id ?? index}
+                        hoverTheme
+                        pressTheme
+                        title={log.title ?? `Log ${index + 1}`}
+                        subTitle={log.description ?? `Log ${index + 1} description`}
+                        icon={FileText}
+                        iconAfter={<ChevronRight color="$color9"></ChevronRight>}
+                        color="$color7"
+                        scaleIcon={1.7}
+                        padding={10}
+                        size={16}
+                        borderWidth={0}
+                        borderBottomWidth={1}
+                        borderColor="$color6"
+                        backgroundColor="$color1"
+                        onPress={() => navigateToLog(log.session_id?.toString() ?? `${index + 1}`)}
+                      />
+                    ))}
               </YStack>  
             </ScrollView>
           </Tabs.Content>
