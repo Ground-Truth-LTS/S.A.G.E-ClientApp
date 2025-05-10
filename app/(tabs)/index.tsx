@@ -6,7 +6,7 @@ import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
 // Tamagui imports
 import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
-import { View, YStack, XStack, ScrollView} from 'tamagui';
+import { View, YStack, XStack, ScrollView, Input} from 'tamagui';
 import { Toast, useToastController, useToastState, ToastViewport } from '@tamagui/toast'
 import { AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox, RadioGroup, Label } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
@@ -41,6 +41,8 @@ export default function LogsList() {
   const db = useSQLiteContext();
   const [loadingLogs, setLoadingLogs] = useState(false);
   const [logs, setLogs] = useState([]);
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [renameText, setRenameText] = useState('');
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { bottom } = useSafeAreaInsets();
@@ -204,6 +206,11 @@ export default function LogsList() {
 
     const handleRename = () => {
       // Logic to rename selected log
+      if (selectedLogs.length !== 1) return;
+
+    const logToRename = selectedLogs[0];
+    setRenameText(logToRename ?? '');
+    setRenameModalVisible(true);
     };
 
     const allSelected = logs.length > 0 && selectedLogs.length === logs.length;
@@ -340,6 +347,69 @@ export default function LogsList() {
         </View>
       );
   }
+  const RenameModal = () => (
+    <Modal
+      visible={renameModalVisible}
+      transparent
+      animationType="slide"
+      onRequestClose={() => setRenameModalVisible(false)}
+    >
+      <View
+        style={{
+          flex: 1,
+          backgroundColor: 'rgba(0,0,0,0.5)',
+          justifyContent: 'center',
+          alignItems: 'center'
+        }}
+      >
+        <View
+          style={{
+            width: 300,
+            padding: 20,
+            backgroundColor: isDarkMode ? '$color1' : 'white',
+            borderRadius: 10
+          }}
+        >
+          <H4>Rename Log</H4>
+
+          <Input
+            value={renameText}
+            onChangeText={setRenameText}
+            placeholder="New title"
+            width="100%"
+            marginVertical={10}
+          />
+
+          <XStack justifyContent="flex-end" space>
+            <Button onPress={() => setRenameModalVisible(false)}>
+              <Text>Cancel</Text>
+            </Button>
+
+            {/* <Button
+              onPress={async () => {
+                // try {
+                //   // Update Title to db
+                //   });
+
+                  // reload from DB
+                  const raw = await getAllSession(db);
+                  setLogs(JSON.parse(raw));
+                } catch (err) {
+                  console.error('Rename failed', err);
+                } finally {
+                  setRenameModalVisible(false);
+                  // exit selection mode
+                  if (selectionMode) toggleSelectionMode();
+                }
+              }}
+            >
+              <Text>Confirm</Text>
+            </Button> */}
+          </XStack>
+        </View>
+      </View>
+    </Modal>
+  );
 
 
 
@@ -553,6 +623,7 @@ export default function LogsList() {
       </YStack>
       {selectionMode && <ToolBar />}
       <SortModal/>
+      <RenameModal/>
       {/*<ToastViewport></ToastViewport>*/}
     </View>
   );
