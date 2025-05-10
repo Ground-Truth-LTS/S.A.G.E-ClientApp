@@ -251,11 +251,11 @@ export default function LogsList() {
           <YStack 
             alignItems='center' 
             height="100%" 
-            justifyContent='space-between'        
+            justifyContent='space-evenly'        
             opacity={logs.length === 0 ? 0.5 : 1}>
             <Checkbox 
               id={"checkbox-all"} 
-              size="$xl3"
+              size="$xl2"
               borderRadius={16}
               borderColor="$color9"
               backgroundColor={allSelected ? "$color9" : "transparent"}
@@ -268,7 +268,7 @@ export default function LogsList() {
                 <CheckIcon color="$white" />
               </Checkbox.Indicator>
             </Checkbox>
-            <Text color="$color9" >
+            <Text color="$color9" fontSize={12}>
               All
             </Text>
           </YStack>
@@ -286,10 +286,13 @@ export default function LogsList() {
               opacity={selectedLogs.length === 0 ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Trash2 size={24} color="$color9" />
-              <Text color="$color9" >
-                Eliminate
-              </Text>
+              <View alignItems='center'>
+                <Trash2 size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4}>
+                  Delete
+                </Text>
+              </View>
+        
             </Button>
             
             {/* Download Button */}
@@ -305,10 +308,12 @@ export default function LogsList() {
               opacity={selectedLogs.length === 0 || currentTab !== "device" ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Download size={24} color="$color9" />
-              <Text color="$color9" >
-                Download
-              </Text>
+              <View alignItems='center'>
+                <Download size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4} >
+                  Download
+                </Text>
+              </View>
             </Button>
             
             {/* Rename Button */}
@@ -324,10 +329,12 @@ export default function LogsList() {
               opacity={selectedLogs.length !== 1 ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Edit3 size={24} color="$color9" />
-              <Text color="$color9" >
-                Rename
-              </Text>
+              <View alignItems='center'>
+                <Edit3 size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4}>
+                  Rename
+                </Text>
+              </View>
             </Button>
           </XStack>
         </View>
@@ -488,7 +495,7 @@ export default function LogsList() {
                         icon={ selectionMode ? (            
                           <Checkbox 
                             id={"checkbox-"+log.session_id} 
-                            size="$xl3"
+                            size="$xl4"
                             backgroundColor={isSelected ? "$color9" : "transparent"}
                             borderRadius={16}
                             borderColor="$color9"
