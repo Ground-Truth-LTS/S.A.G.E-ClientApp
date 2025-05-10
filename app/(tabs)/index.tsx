@@ -1,5 +1,5 @@
 // Expo and React imports 
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { StyleSheet, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
@@ -81,6 +81,7 @@ export default function LogsList() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
   const [sortModalVisible, setSortModalVisible] = useState(false);
+  const [sortOrder, setSortOrder] = useState<'new-old' | 'old-new'>('new-old');
   const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
   const { selectionMode, selectedLogs, toggleSelectionMode, toggleLogSelection } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
@@ -99,6 +100,14 @@ export default function LogsList() {
   const navigateToLog = (id: string) => {
     navigation.navigate('log/[id]', { id });
   }
+  const sortedDeviceData = useMemo(() => {
+    if (!data) return [];
+    return [...data].sort((a, b) => {
+      const aTime = new Date(a.timestamp).getTime();
+      const bTime = new Date(b.timestamp).getTime();
+      return sortOrder === 'new-old' ? bTime - aTime : aTime - bTime;
+    });
+  }, [data, sortOrder]);
 
   const SortModal: React.FC = () => {
 
@@ -121,7 +130,7 @@ export default function LogsList() {
             
             <View style={{ flex: 1 }}>
 
-              <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form">
+              <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form" value={sortOrder} onValueChange={(val) => setSortOrder(val as 'new-old' | 'old-new')}>
                 <YStack alignItems="center" justifyContent='space-evenly' height={100} padding={10}>
                   <XStack alignItems="center">
                     <RadioGroup.Item value="new-old" id="new-old-radio-item" size="$xl2">
@@ -543,7 +552,7 @@ export default function LogsList() {
               }}>
               <YStack margin={20}>
                 {/*This is the ListItem for the Device tab*/}
-                <DisplayDeviceData data={data} error={error} status={status} />
+                <DisplayDeviceData data={sortedDeviceData} error={error} status={status} />
               </YStack>
             </ScrollView>
           </Tabs.Content>
