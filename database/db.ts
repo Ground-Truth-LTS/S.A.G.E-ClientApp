@@ -1,5 +1,6 @@
 import * as SQLite from 'expo-sqlite';
 
+
 // DB Creation
 export const createDB = async  () => {
 
@@ -40,7 +41,7 @@ export const createDB = async  () => {
 
 export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: String) => {
   const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', device_name);
-  console.log(result.lastInsertRowId,result.changes);
+  //console.log(result.lastInsertRowId,result.changes);
 }
 
 export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : String,
@@ -51,7 +52,7 @@ export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start 
     timestamp_end,
     location,
     device_id ) VALUES (?,?,?,?)`, timestamp_start, timestamp_end, location, device_id);
-  console.log(result.lastInsertRowId,result.changes);
+  //console.log(result.lastInsertRowId,result.changes);
 }
 
 export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : Number,
@@ -64,7 +65,7 @@ export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : 
         pH,
         moisture,
         temperature) VALUES (?,?,?,?,?,?,?)`, session_id, nitrogen, phosphorus, potassium, pH, moisture, temperature);
-  console.log(result.lastInsertRowId,result.changes);
+  //(result.lastInsertRowId,result.changes);
 }
 
 // Get device data

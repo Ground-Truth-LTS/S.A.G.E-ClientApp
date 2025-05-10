@@ -6,6 +6,7 @@ interface SelectionModeContextType {
   setSelectionMode: (value: boolean) => void;
   setSelectedLogs: React.Dispatch<React.SetStateAction<string[]>>;
   toggleSelectionMode: () => void;
+  toggleLogSelection: (selection: string[]) => void;
 }
 
 const SelectionModeContext = createContext<SelectionModeContextType | undefined>(undefined);
@@ -21,6 +22,10 @@ export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ childre
     }
   };
 
+  const toggleLogSelection = (selection: string[]) => {
+    setSelectedLogs(selection);
+  };
+
   return (
     <SelectionModeContext.Provider 
       value={{ 
@@ -28,7 +33,8 @@ export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ childre
         selectedLogs, 
         setSelectionMode, 
         setSelectedLogs,
-        toggleSelectionMode
+        toggleSelectionMode,
+        toggleLogSelection
       }}
     >
       {children}
