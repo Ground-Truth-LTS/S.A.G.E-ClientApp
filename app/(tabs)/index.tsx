@@ -57,7 +57,7 @@ export default function LogsList() {
       try {
         const logsRequest = await getAllSession(db);
         setLogs(JSON.parse(logsRequest));
-        console.log("Loading logs from local database", logs, logsRequest, JSON.parse(logsRequest));
+        //console.log("Loading logs from local database", logs, logsRequest, JSON.parse(logsRequest));
       }catch (error) {
         console.error("Error loading logs: ", error);
 
@@ -82,7 +82,7 @@ export default function LogsList() {
   const { isDarkMode } = isDarkProvider();
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
-  const { selectionMode, selectedLogs, toggleSelectionMode } = useSelectionMode();
+  const { selectionMode, selectedLogs, toggleSelectionMode, toggleLogSelection } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
   const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
@@ -183,8 +183,15 @@ export default function LogsList() {
 
   const ToolBar: React.FC = () => {
     // Selection mode action handlers
-    const handleSelectAll = () => {
-      // Logic to select all logs
+    const handleSelectAll = (checked: boolean) => {
+      if (checked) {
+        // Select all
+        const allLogIds = logs.map((log: any) => log);
+        toggleLogSelection(allLogIds);
+      } else {
+        // Deselect all
+        toggleLogSelection([]);
+      }
     };
 
     const handleDelete = () => {
@@ -198,6 +205,9 @@ export default function LogsList() {
     const handleRename = () => {
       // Logic to rename selected log
     };
+
+    const allSelected = logs.length > 0 && selectedLogs.length === logs.length;
+
     return (
     <View
         style={{
@@ -246,14 +256,16 @@ export default function LogsList() {
             <Checkbox 
               id={"checkbox-all"} 
               size="$xl3"
-              backgroundColor="$background"
               borderRadius={16}
               borderColor="$color9"
+              backgroundColor={allSelected ? "$color9" : "transparent"}
               borderWidth={logs.length === 0 ? 0.5 : 2}
               disabled={logs.length === 0}
+              checked={allSelected}
+              onCheckedChange={handleSelectAll}
             >
-              <Checkbox.Indicator > 
-                <CheckIcon color="$color9" />
+              <Checkbox.Indicator> 
+                <CheckIcon color="$white" />
               </Checkbox.Indicator>
             </Checkbox>
             <Text color="$color9" >
@@ -289,8 +301,8 @@ export default function LogsList() {
               alignItems="center"
               height="100%"
               padding={0}
-              disabled={selectedLogs.length === 0 && selectedElements.length > 0}
-              opacity={selectedLogs.length === 0 ? 0.5 : 1}
+              disabled={selectedLogs.length === 0 && selectedElements.length > 0 || currentTab !== "device"}
+              opacity={selectedLogs.length === 0 || currentTab !== "device" ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
               <Download size={24} color="$color9" />
@@ -462,7 +474,11 @@ export default function LogsList() {
               }}>
                 <YStack margin={20}>
                     {/*This is the ListItem for the Mobile tab*/}
-                    {logs?.map((log: any, index: number) => (
+                    {logs?.map((log: any, index: number) => { 
+                      
+                      const isSelected = selectedLogs.includes(log);
+  
+                      return (
                       <ListItem
                         key={log.session_id ?? index}
                         hoverTheme
@@ -473,13 +489,24 @@ export default function LogsList() {
                           <Checkbox 
                             id={"checkbox-"+log.session_id} 
                             size="$xl3"
-                            backgroundColor="$background"
+                            backgroundColor={isSelected ? "$color9" : "transparent"}
                             borderRadius={16}
                             borderColor="$color9"
                             borderWidth={2}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                const updatedSelection = [...selectedLogs, log];
+                                toggleLogSelection(updatedSelection);
+                              } else {
+                                const updatedSelection = selectedLogs.filter(logL => logL !== log);
+                                toggleLogSelection(updatedSelection);
+                              }
+                           
+                            }}
                           >
-                            <Checkbox.Indicator > 
-                              <CheckIcon color="$color9" />
+                            <Checkbox.Indicator>
+                              <CheckIcon color="white" />
                             </Checkbox.Indicator>
                           </Checkbox>) : FileText}
                         iconAfter={<ChevronRight color="$color9"></ChevronRight>}
@@ -497,7 +524,7 @@ export default function LogsList() {
                               navigateToLog(log.session_id?.toString() ?? `${index + 1}`)
                           }}
                       />
-                    ))}
+                    )})}
               </YStack>  
             </ScrollView>
           </Tabs.Content>

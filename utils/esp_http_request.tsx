@@ -10,10 +10,10 @@ async function checkESP32Connection(): Promise<boolean> {
 
       const { status } = await Location.requestForegroundPermissionsAsync();
       if (status !== 'granted') {
-          console.log('Location permission denied - SSID access may be limited');
+          //console.log('Location permission denied - SSID access may be limited');
       }
       const netInfo = await NetInfo.fetch();
-      console.log('NetInfo state:', netInfo); // Keep this for debugging
+      //console.log('NetInfo state:', netInfo); // Keep this for debugging
       
       if (netInfo.isConnected && netInfo.type === 'wifi' && netInfo.details) {
           const info = netInfo.details;
@@ -123,6 +123,6 @@ export function useESP32Data() {
     };
   }, []);
 
-  console.log( { data, loading, error, connectionStatus })
+  //console.log( { data, loading, error, connectionStatus })
   return { data, loading, error, connectionStatus };
 }
