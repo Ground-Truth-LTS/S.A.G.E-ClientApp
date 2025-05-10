@@ -296,15 +296,15 @@ function SubmitFeedbackSheet({open, setOpen} :  { open: boolean, setOpen: (open:
         onPositionChange={setPosition}
         zIndex={100_000}
         animation="medium"
+        disableDrag={true}
       >
         <Sheet.Overlay
           animation="slow"
           backgroundColor="$shadow6"
           enterStyle={{ opacity: 0 }}
           exitStyle={{ opacity: 0 }}
+          
         />
-
-        <Sheet.Handle />
         <Sheet.Frame padding={10} gap={5}>
           <SubmitFeedbackContent {...{ setOpen }} />
         </Sheet.Frame>

@@ -1,8 +1,9 @@
 // Expo and React imports 
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { StyleSheet, Platform, Modal } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
+import { useSQLiteContext } from 'expo-sqlite';
 // Tamagui imports
 import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
 import { View, YStack, XStack, ScrollView} from 'tamagui';
@@ -17,10 +18,12 @@ import {
         Check as CheckIcon
  } from '@tamagui/lucide-icons';
 import type { CheckboxProps } from 'tamagui'
-// Components imports 
+// Custom Utils, Components and Providers 
 import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 import { useESP32Data } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
+// Database queries
+import { getAllSession } from '@/database/db';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -35,6 +38,9 @@ const StyledTab = styled(Tabs.Tab, {
 
 
 export default function LogsList() {
+  const db = useSQLiteContext();
+  const [loadingLogs, setLoadingLogs] = useState(false);
+  const [logs, setLogs] = useState([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const { bottom } = useSafeAreaInsets();
@@ -44,6 +50,24 @@ export default function LogsList() {
     error,
     connectionStatus: status,
   } = useESP32Data();
+
+  useEffect(() => {
+    // Logs is equivalent
+    async function loadLogs(){
+      try {
+        const logsRequest = await getAllSession(db);
+        setLogs(JSON.parse(logsRequest));
+        //console.log("Loading logs from local database", logs, logsRequest, JSON.parse(logsRequest));
+      }catch (error) {
+        console.error("Error loading logs: ", error);
+
+      } finally {
+        setLoadingLogs(false);
+      }
+    }
+    loadLogs();
+  }, [db])
+
   // Refer to tamagui doc https://tamagui.dev/ui/tabs for more information about the Tabs component, the tabs animation were done from the tabs doc
   const [tabState, setTabState] = React.useState<{
     currentTab: string
@@ -58,7 +82,7 @@ export default function LogsList() {
   const { isDarkMode } = isDarkProvider();
   const [sortModalVisible, setSortModalVisible] = useState(false);
   const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
-  const { selectionMode, selectedLogs, toggleSelectionMode } = useSelectionMode();
+  const { selectionMode, selectedLogs, toggleSelectionMode, toggleLogSelection } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
   const setActiveIndicator = (activeAt: any) => setTabState({ ...tabState, activeAt })
@@ -159,8 +183,15 @@ export default function LogsList() {
 
   const ToolBar: React.FC = () => {
     // Selection mode action handlers
-    const handleSelectAll = () => {
-      // Logic to select all logs
+    const handleSelectAll = (checked: boolean) => {
+      if (checked) {
+        // Select all
+        const allLogIds = logs.map((log: any) => log);
+        toggleLogSelection(allLogIds);
+      } else {
+        // Deselect all
+        toggleLogSelection([]);
+      }
     };
 
     const handleDelete = () => {
@@ -174,6 +205,9 @@ export default function LogsList() {
     const handleRename = () => {
       // Logic to rename selected log
     };
+
+    const allSelected = logs.length > 0 && selectedLogs.length === logs.length;
+
     return (
     <View
         style={{
@@ -217,22 +251,24 @@ export default function LogsList() {
           <YStack 
             alignItems='center' 
             height="100%" 
-            justifyContent='space-between'        
-            opacity={selectedLogs.length === 0 ? 0.5 : 1}>
+            justifyContent='space-evenly'        
+            opacity={logs.length === 0 ? 0.5 : 1}>
             <Checkbox 
               id={"checkbox-all"} 
-              size="$xl3"
-              backgroundColor="$background"
+              size="$xl2"
               borderRadius={16}
               borderColor="$color9"
-              borderWidth={selectedLogs.length === 0 ? 0.5 : 2}
-              disabled={selectedLogs.length === 0}
+              backgroundColor={allSelected ? "$color9" : "transparent"}
+              borderWidth={logs.length === 0 ? 0.5 : 2}
+              disabled={logs.length === 0}
+              checked={allSelected}
+              onCheckedChange={handleSelectAll}
             >
-              <Checkbox.Indicator > 
-                <CheckIcon color="$color9" />
+              <Checkbox.Indicator> 
+                <CheckIcon color="$white" />
               </Checkbox.Indicator>
             </Checkbox>
-            <Text color="$color9" >
+            <Text color="$color9" fontSize={12}>
               All
             </Text>
           </YStack>
@@ -250,10 +286,13 @@ export default function LogsList() {
               opacity={selectedLogs.length === 0 ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Trash2 size={24} color="$color9" />
-              <Text color="$color9" >
-                Eliminate
-              </Text>
+              <View alignItems='center'>
+                <Trash2 size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4}>
+                  Delete
+                </Text>
+              </View>
+        
             </Button>
             
             {/* Download Button */}
@@ -265,14 +304,16 @@ export default function LogsList() {
               alignItems="center"
               height="100%"
               padding={0}
-              disabled={selectedLogs.length === 0 && selectedElements.length > 0}
-              opacity={selectedLogs.length === 0 ? 0.5 : 1}
+              disabled={selectedLogs.length === 0 && selectedElements.length > 0 || currentTab !== "device"}
+              opacity={selectedLogs.length === 0 || currentTab !== "device" ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Download size={24} color="$color9" />
-              <Text color="$color9" >
-                Download
-              </Text>
+              <View alignItems='center'>
+                <Download size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4} >
+                  Download
+                </Text>
+              </View>
             </Button>
             
             {/* Rename Button */}
@@ -288,10 +329,12 @@ export default function LogsList() {
               opacity={selectedLogs.length !== 1 ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
-              <Edit3 size={24} color="$color9" />
-              <Text color="$color9" >
-                Rename
-              </Text>
+              <View alignItems='center'>
+                <Edit3 size={20} color="$color9" />
+                <Text color="$color9" fontSize={12} paddingTop={4}>
+                  Rename
+                </Text>
+              </View>
             </Button>
           </XStack>
         </View>
@@ -343,6 +386,7 @@ export default function LogsList() {
               backgroundColor="transparent" 
               pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
               onPress={() => setSortModalVisible(true)}
+              disabled={selectionMode}
               ></Button>
             <Tabs.List
               disablePassBorderRadius
@@ -437,24 +481,57 @@ export default function LogsList() {
               }}>
                 <YStack margin={20}>
                     {/*This is the ListItem for the Mobile tab*/}
-                    <ListItem
-                      hoverTheme
-                      pressTheme
-                      title="Log 2"
-                      subTitle="Log 2 description"
-                      icon={FileText}
-                      iconAfter={<ChevronRight color="$color9"></ChevronRight>}
-                      color="$color7"
-                      scaleIcon={1.7}
-                      padding={10}
-                      size={16}
-                      borderWidth={0}
-                      borderBottomWidth={1}
-                      borderColor="$color6"
-                      backgroundColor="$color1"
-                      onPress={() => navigateToLog("2")}
-                    ></ListItem>        
-                    
+                    {logs?.map((log: any, index: number) => { 
+                      
+                      const isSelected = selectedLogs.includes(log);
+  
+                      return (
+                      <ListItem
+                        key={log.session_id ?? index}
+                        hoverTheme
+                        pressTheme
+                        title={log.title ?? `Log ${index + 1}`}
+                        subTitle={log.description ?? `Log ${index + 1} description`}
+                        icon={ selectionMode ? (            
+                          <Checkbox 
+                            id={"checkbox-"+log.session_id} 
+                            size="$xl4"
+                            backgroundColor={isSelected ? "$color9" : "transparent"}
+                            borderRadius={16}
+                            borderColor="$color9"
+                            borderWidth={2}
+                            checked={isSelected}
+                            onCheckedChange={(checked) => {
+                              if (checked) {
+                                const updatedSelection = [...selectedLogs, log];
+                                toggleLogSelection(updatedSelection);
+                              } else {
+                                const updatedSelection = selectedLogs.filter(logL => logL !== log);
+                                toggleLogSelection(updatedSelection);
+                              }
+                           
+                            }}
+                          >
+                            <Checkbox.Indicator>
+                              <CheckIcon color="white" />
+                            </Checkbox.Indicator>
+                          </Checkbox>) : FileText}
+                        iconAfter={<ChevronRight color="$color9"></ChevronRight>}
+                        color="$color7"
+                        scaleIcon={1.7}
+                        padding={10}
+                        size={16}
+                        borderWidth={0}
+                        borderBottomWidth={1}
+                        borderColor="$color6"
+                        backgroundColor="$color1"
+                        onPress={() => 
+                          {
+                            if(!selectionMode)
+                              navigateToLog(log.session_id?.toString() ?? `${index + 1}`)
+                          }}
+                      />
+                    )})}
               </YStack>  
             </ScrollView>
           </Tabs.Content>
@@ -504,6 +581,7 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
 }
 
 const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
+  const { selectionMode } = useSelectionMode();
   const logList = [];
 
   if (!status.connected) {
@@ -550,7 +628,22 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         title={data[index].fileName}
         subTitle={data[index].fileName}
         icon={FileText}
-        iconAfter={<Download color="$color9"></Download>}
+        iconAfter={
+        selectionMode ? (            
+            <Checkbox 
+              id={"checkbox-"+data[index].session_id} 
+              size="$xl3"
+              backgroundColor="$background"
+              borderRadius={16}
+              borderColor="$color9"
+              borderWidth={2}
+            >
+              <Checkbox.Indicator > 
+                <CheckIcon color="$color9" />
+              </Checkbox.Indicator>
+            </Checkbox>) 
+            : <Download color="$color9"></Download>
+          }
         color="$color7"
         scaleIcon={1.7}
         padding={10}

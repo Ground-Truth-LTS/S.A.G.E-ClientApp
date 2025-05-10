@@ -1,5 +1,5 @@
 import * as SQLite from 'expo-sqlite';
-import { json } from 'stream/consumers';
+
 
 // DB Creation
 export const createDB = async  () => {
@@ -41,7 +41,7 @@ export const createDB = async  () => {
 
 export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: String) => {
   const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', device_name);
-  console.log(result.lastInsertRowId,result.changes);
+  //console.log(result.lastInsertRowId,result.changes);
 }
 
 export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : String,
@@ -52,7 +52,7 @@ export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start 
     timestamp_end,
     location,
     device_id ) VALUES (?,?,?,?)`, timestamp_start, timestamp_end, location, device_id);
-  console.log(result.lastInsertRowId,result.changes);
+  //console.log(result.lastInsertRowId,result.changes);
 }
 
 export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : Number,
@@ -65,7 +65,7 @@ export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : 
         pH,
         moisture,
         temperature) VALUES (?,?,?,?,?,?,?)`, session_id, nitrogen, phosphorus, potassium, pH, moisture, temperature);
-  console.log(result.lastInsertRowId,result.changes);
+  //(result.lastInsertRowId,result.changes);
 }
 
 // Get device data
@@ -75,7 +75,7 @@ export const getDevices = async (db : SQLite.SQLiteDatabase) => {
 }
 
 // Get Session data
-export const getSession = async (db : SQLite.SQLiteDatabase) => {
+export const getAllSession = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Session');
   return JSON.stringify(allRows);
 }
@@ -84,11 +84,12 @@ export const getSessionByTimeframe = async (db : SQLite.SQLiteDatabase,
   start: string,
   end: string
 ) => {
-  const allRows = await db.getAllAsync(`SELECT *
-          FROM Session
-         WHERE timestamp_start >= ?
-           AND timestamp_end   <= ?
-         ORDER BY timestamp_start`, start, end);
+  const allRows = await db.getAllAsync(
+    ` SELECT *
+        FROM Session
+      WHERE timestamp_start >= ?
+        AND timestamp_end   <= ?
+      ORDER BY timestamp_start`, start, end);
   return JSON.stringify(allRows);
 }
 
