@@ -547,6 +547,7 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
 }
 
 const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
+  const { selectionMode } = useSelectionMode();
   const logList = [];
 
   if (!status.connected) {
@@ -593,7 +594,22 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         title={data[index].fileName}
         subTitle={data[index].fileName}
         icon={FileText}
-        iconAfter={<Download color="$color9"></Download>}
+        iconAfter={
+        selectionMode ? (            
+            <Checkbox 
+              id={"checkbox-"+data[index].session_id} 
+              size="$xl3"
+              backgroundColor="$background"
+              borderRadius={16}
+              borderColor="$color9"
+              borderWidth={2}
+            >
+              <Checkbox.Indicator > 
+                <CheckIcon color="$color9" />
+              </Checkbox.Indicator>
+            </Checkbox>) 
+            : <Download color="$color9"></Download>
+          }
         color="$color7"
         scaleIcon={1.7}
         padding={10}
