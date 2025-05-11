@@ -1,6 +1,5 @@
-import { defaultConfig } from '@tamagui/config/v4'
 import { themes } from './theme'
-import { createTamagui, createFont } from '@tamagui/core'
+import { createTamagui, createFont, createTokens } from 'tamagui'
 import { createAnimations } from '@tamagui/animations-react-native'
 
 const headingFont = createFont({
@@ -33,14 +32,10 @@ const headingFont = createFont({
   },
 })
 
-export const config = createTamagui({
-  fonts: {
-    heading: headingFont
-  },
-  // act like CSS variables at your root
-  tokens: {
+const tokens = createTokens({
     // width="$sm"
     size: {    
+      true: 16, 
       1: 4,
       2: 8,
       3: 12,
@@ -56,17 +51,20 @@ export const config = createTamagui({
       xl5: 64,
     },
     // margin="$-sm"
-    space: { '-sm': 8 },
+    space: {  true: 0, '-sm': 8 },
     // radius="$none"
-    radius: { none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
-    color: { white: '#fff', black: '#000' },
+    radius: { true: 8, none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
+    color: {  true: "fff", white: "fff", black: "000" },
+  });
+
+const config = createTamagui({
+  fonts: {
+    heading: headingFont,
+    body: headingFont
   },
-
+  tokens: tokens,
   themes: themes,
-
-  // media query definitions can be used to style,
-  // but also can be used with "groups" to do container queries by size:
-  media: {
+   media: {
     sm: { maxWidth: 860 },
     gtSm: { minWidth: 860 + 1 },
     short: { maxHeight: 820 },
@@ -78,12 +76,10 @@ export const config = createTamagui({
     // <View px={20} />
     px: 'paddingHorizontal',
   },
-
   settings: {
     disableSSR: true, // for client-side apps gains a bit of performance
     allowedStyleValues: 'somewhat-strict-web', // if targeting only web
   },
-
   animations: createAnimations({
     superfast: {
       damping: 40,
@@ -109,7 +105,7 @@ export const config = createTamagui({
 
 })
 
-type Conf = typeof config
+type Conf = typeof config;
 
 // ensure types work
 declare module 'tamagui' {

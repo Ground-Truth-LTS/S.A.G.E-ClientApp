@@ -40,26 +40,12 @@
           "assetsDir": "assets/bootsplash"
         }        
       ],
-      "expo-sqlite",
-      [
-        "expo-build-properties",
-        {
-          "android": {
-            "usesCleartextTraffic": true
-          },
-          "ios": {
-            "flipper": true
-          }
-        }
-      ]
+      "expo-sqlite"
     ],
     "experiments": {
       "typedRoutes": true
     },
     "extra": {
-      "router": {
-        "origin": false
-      },
       "eas": {
         "projectId": "db7ecb74-5ca3-4e8a-99e1-6d305b3d4f10"
       }

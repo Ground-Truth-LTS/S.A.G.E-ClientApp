@@ -7,7 +7,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 // Tamagui imports
 import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
 import { View, YStack, XStack, ScrollView} from 'tamagui';
-import { Toast, useToastController, useToastState, ToastViewport } from '@tamagui/toast'
+//import { Toast, useToastController, useToastState, ToastViewport } from '@tamagui/toast'
 import { AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox, RadioGroup, Label } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { 
@@ -748,30 +748,30 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
   );
 }
 // TODO Complete and test after database is working
-const DisplayToast: React.FC = () => {
-  const currentToast = useToastState()
-  if (!currentToast) return null
-  return (
-    <Toast
-      key={currentToast.id}
-      duration={currentToast.duration}
-      enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
-      exitStyle={{ opacity: 0, scale: 1, y: -20 }}
-      y={0}
-      opacity={1}
-      scale={1}
-      animation="100ms"
-      viewportName={currentToast.viewportName}
-    >
-      <YStack>
-        <Toast.Title>{currentToast.title}</Toast.Title>
-        {!!currentToast.message && (
-          <Toast.Description>{currentToast.message}</Toast.Description>
-        )}
-      </YStack>
-    </Toast>
-  );
-}
+// const DisplayToast: React.FC = () => {
+//   const currentToast = useToastState()
+//   if (!currentToast) return null
+//   return (
+//     <Toast
+//       key={currentToast.id}
+//       duration={currentToast.duration}
+//       enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+//       exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+//       y={0}
+//       opacity={1}
+//       scale={1}
+//       animation="fast"
+//       viewportName={currentToast.viewportName}
+//     >
+//       <YStack>
+//         <Toast.Title>{currentToast.title}</Toast.Title>
+//         {!!currentToast.message && (
+//           <Toast.Description>{currentToast.message}</Toast.Description>
+//         )}
+//       </YStack>
+//     </Toast>
+//   );
+// }
 
 
 const styles = StyleSheet.create({
