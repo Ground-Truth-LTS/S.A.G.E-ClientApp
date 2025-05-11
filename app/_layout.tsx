@@ -1,7 +1,7 @@
 
 // Tamagui imports
 import { TamaguiProvider } from 'tamagui';
-import config  from '../tamagui.config'
+import { tamaguiConfig }  from '../tamagui.config'
 import { PortalProvider } from 'tamagui';
 // Expo imports
 import { useFonts } from 'expo-font';
@@ -14,7 +14,8 @@ import { useEffect, useState } from 'react';
 
 // SQLite imports
 import { 
-  createDB,
+  createEmptyDB,
+  insertDummyData,
 } from '@/database/db';
 
 
@@ -45,9 +46,9 @@ export default function RootLayout() {
     return null;
   }
   return (
-    <TamaguiProvider config={config} defaultTheme='light'>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
       <SQLiteProvider databaseName='sage.db' onInit={ async (db) => {
-        await createDB();
+        await createEmptyDB(db);
       }}>
         <PortalProvider shouldAddRootHost>
         <ThemeProvider>

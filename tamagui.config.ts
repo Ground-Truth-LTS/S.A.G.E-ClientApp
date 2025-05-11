@@ -30,34 +30,60 @@ const headingFont = createFont({
     7: 58,
     8: 74,
   },
+  face: {
+    '400': { normal: 'SpaceMono-Regular' }, // Adjust font file names
+    '700': { normal: 'SpaceMono-Bold' },   // Adjust font file names
+  },
 })
 
+
 const tokens = createTokens({
-    // width="$sm"
-    size: {    
-      true: 16, 
-      1: 4,
-      2: 8,
-      3: 12,
-      4: 16,
-      5: 20,
-      sm: 8,
-      md: 12,
-      lg: 20,
-      xl: 32,
-      xl2: 40,
-      xl3: 48,
-      xl4: 56,
-      xl5: 64,
-    },
-    // margin="$-sm"
-    space: {  true: 0, '-sm': 8 },
-    // radius="$none"
-    radius: { true: 8, none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
-    color: {  true: "fff", white: "fff", black: "000" },
+size: {
+    $true: 16, // Corrected: $ prefix
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    sm: 8,
+    md: 12,
+    lg: 20,
+    xl: 32,
+    xl2: 40,
+    xl3: 48,
+    xl4: 56,
+    xl5: 64,
+  },
+  space: {
+    $true: 16, 
+    sm: 8,
+    '-sm': -8,
+  },
+  radius: {
+    $true: 8,  // Corrected: $ prefix, and gave it a more common default
+    0: 0,    // Often good to have a zero token
+    none: 0,
+    sm: 3,
+    md: 8,
+    lg: 12,
+    xl: 20,
+  },
+  color: {
+    white: "#ffffff",
+    black: "#000000",
+  },
+  zIndex: { 
+    $true: 0,
+    0: 0,
+    1: 100,
+    2: 200,
+    3: 300,
+    4: 400,
+    5: 500,
+  }
   });
 
-const config = createTamagui({
+export const tamaguiConfig = createTamagui({
   fonts: {
     heading: headingFont,
     body: headingFont
@@ -78,7 +104,6 @@ const config = createTamagui({
   },
   settings: {
     disableSSR: true, // for client-side apps gains a bit of performance
-    allowedStyleValues: 'somewhat-strict-web', // if targeting only web
   },
   animations: createAnimations({
     superfast: {
@@ -104,12 +129,11 @@ const config = createTamagui({
 
 
 })
+export default tamaguiConfig;
 
-type Conf = typeof config;
+type Conf = typeof tamaguiConfig;
 
 // ensure types work
 declare module 'tamagui' {
   interface TamaguiCustomConfig extends Conf {}
 }
-
-export default config;

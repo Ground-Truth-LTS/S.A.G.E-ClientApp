@@ -382,7 +382,8 @@ export default function LogsList() {
          
           <XStack 
             width="100%" 
-            justifyContent='space-evenly' >
+            justifyContent='space-evenly' 
+            alignItems='center'>
                {/* 
               TODO: Implementent different sorts, this button is going to open a pop up, 
               preferably a modal, with the different options to sort the logs, 
@@ -476,8 +477,11 @@ export default function LogsList() {
             pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
             onPress={toggleSelectionMode}
             width={60}
+            height={40}
+            padding={0}
+            margin={0}
             > 
-              {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1" paddingRight={10}>Select</Text>} 
+              {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1" padding={0} margin={0}>Select</Text>} 
             </Button>
           </XStack>
           </YStack>

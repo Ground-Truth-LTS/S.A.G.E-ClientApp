@@ -2,9 +2,8 @@ import * as SQLite from 'expo-sqlite';
 
 
 // DB Creation
-export const createDB = async  () => {
+export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
 
-  const db = await SQLite.openDatabaseAsync('sage.db');
   await db.execAsync(`PRAGMA foreign_keys = ON;`);
   await db.execAsync(`
     CREATE TABLE IF NOT EXISTS Device (
@@ -34,18 +33,17 @@ export const createDB = async  () => {
         temperature REAL,
         FOREIGN KEY (session_id) REFERENCES Session(session_id)
       );`)
-    return db;
 }
 
 // Insert into Tables
 
-export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: String) => {
-  const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', device_name);
+export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: string) => {
+  const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', [device_name]);
   //console.log(result.lastInsertRowId,result.changes);
 }
 
-export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : String,
-  timestamp_end : String, location : String, device_id  : Number) => {
+export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : string,
+  timestamp_end : string, location : string, device_id  : number) => {
   const result = await db.runAsync(`
     INSERT INTO Session (
     timestamp_start,
@@ -55,8 +53,8 @@ export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start 
   //console.log(result.lastInsertRowId,result.changes);
 }
 
-export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : Number,
-   nitrogen : Number, phosphorus : Number, potassium : Number, pH : Number, moisture : Number, temperature : Number) => {
+export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : number,
+   nitrogen : number, phosphorus : number, potassium : number, pH : number, moisture : number, temperature : number) => {
   const result = await db.runAsync(`INSERT INTO Processed_Sensor_Data (
         session_id,
         nitrogen,
