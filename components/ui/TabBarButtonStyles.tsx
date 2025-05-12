@@ -1,17 +1,30 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { View, useTheme} from 'tamagui';
+import { View, useTheme, Button} from 'tamagui';
  
-export function CircularTabBarButton({ children, ...props }: { children: React.ReactNode; [key: string]: any }) {
+interface CircularTabBarButtonProps {
+  active?: boolean;
+  disabled?: boolean;
+  onPress?: () => void;
+  children: React.ReactNode;
+}
+
+export function CircularTabBarButton({ 
+  children, 
+  active=false, 
+
+ }: CircularTabBarButtonProps) {
   const theme = useTheme();
+  const activeColor = theme.accent1?.get();
+  const inactiveColor = "grey";
+
   return (
-    <TouchableOpacity
-      {...props}
-      style={[styles.container, { backgroundColor: theme.accent1?.get()  }]}
-      activeOpacity={0.8}
+    <Button
+      borderRadius={50}
+      style={[styles.container, { backgroundColor: active ? activeColor : inactiveColor }]}
     >
       <View style={styles.iconWrapper}>{children}</View>
-    </TouchableOpacity>
+    </Button>
   );
 }
 

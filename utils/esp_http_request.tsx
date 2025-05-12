@@ -39,7 +39,7 @@ export async function stopESP32Logging(): Promise<any> {
   }
 }
 
-async function checkESP32Connection(): Promise<boolean> {
+export async function checkESP32Connection(): Promise<boolean> {
   try {
 
       const { status } = await Location.requestForegroundPermissionsAsync();

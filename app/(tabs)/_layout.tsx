@@ -1,6 +1,6 @@
 // React imports
 import { Tabs, Slot } from 'expo-router';
-import React, { useState, useCallback } from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
 // Components imports
@@ -20,6 +20,7 @@ import {
  } from '@tamagui/lucide-icons';
 
  import { 
+   checkESP32Connection,
   startESP32Logging,
   stopESP32Logging
 } from '@/utils/esp_http_request';
@@ -29,8 +30,49 @@ import {
 export default function TabLayout() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
+  const [isConnected, setIsConnected] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { selectionMode, selectedLogs } = useSelectionMode();
-    const [isRecording, setIsRecording] = useState(false);
+  const [isRecording, setIsRecording] = useState(false);
+  useEffect(() => {
+    const fetchConnectionStatus = async () => {
+      const connectionStatus = await checkESP32Connection();
+      setIsConnected(connectionStatus);
+    };
+    fetchConnectionStatus();
+
+    if (isRecording) {
+      // Reset timer when starting recording
+      setElapsedTime(0);
+      
+      // Start timer
+    timerRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000) as unknown as NodeJS.Timeout;
+    } else {
+      // Clear timer when stopping recording
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+
+  }, [isRecording]);
+
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+
   // TODO: Add Alert when booting for the first time to show the instructions, you can use the Dialog Sheet from the System or using the React Native Alert Component, try do it as close as possible to the Figma model
   const handleRecordPress = useCallback(async () => {
     try {
@@ -39,10 +81,10 @@ export default function TabLayout() {
       } else {
         await stopESP32Logging();
       }
+      console.log("starting esp32")
       setIsRecording(r => !r);
     } catch (err) {
-      console.error(err);
-      // optionally show an Alert here
+    console.error(err);
     }
   }, [isRecording]);
   return (
@@ -55,7 +97,6 @@ export default function TabLayout() {
       tabBarBackground: TabBarBackground,
       tabBarStyle: selectionMode ? { display: 'none' } : Platform.select({
         ios: {
-          // Use a transparent background on iOS to show the blur effect
           position: 'absolute', 
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
@@ -96,19 +137,32 @@ export default function TabLayout() {
         listeners={{ tabPress: e => e.preventDefault() }}
         options={{
           title: '',
-          tabBarButton: (props) => {
-            // strip out the default onPress so we can override it
-            const { onPress, ...rest } = props;
+          tabBarButton: () => {
             return (
               <CircularTabBarButton
-                {...rest}
+                active={isConnected} 
                 onPress={handleRecordPress}
+                disabled={!isConnected || selectionMode}
               >
                 {isRecording
-                  ? <Square fill="white" size={24} />
-                  : <Circle fill="white" size={24} />
+                  ? <Square fill="white" size={24} color="white"/>
+                  : <Circle fill="white" size={24} color="white"/>
                 }
+                {isRecording && (
+                <Text
+                  position="absolute"
+                  bottom={Platform.OS === 'ios' ? 95 : 105} // Position below tab bar
+                  alignSelf="center"
+                  zIndex={100}
+                  color="$accent1"
+                  fontWeight="bold"
+                  fontSize={16}
+                >
+                  {formatTime(elapsedTime)}
+                </Text> )}
               </CircularTabBarButton>
+     
+             
             );
           },
         }}
