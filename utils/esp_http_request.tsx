@@ -67,96 +67,60 @@ export function useESP32Data() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<{ message: string; code: string } | null>(null);
-  const [connectionStatus, setConnectionStatus] = useState<{
-    connected: boolean;
-    networkName: string;
-  }>({ connected: false, networkName: '' });
+ const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-  useEffect(() => {
-    let isCancelled = false;
 
-    async function fetchLogs() {
+useEffect(() => {
+  async function fetchData() {
+    try {
       setLoading(true);
-      setError(null);
+      setConnectionStatus('connecting');
 
-       try {
-        // Request location permission (needed for SSID access)
-        const { status } = await Location.requestForegroundPermissionsAsync();
-        if (status !== 'granted') {
-          if (!isCancelled) {
-            setError({ 
-              message: 'Location permission required to detect device network', 
-              code: 'PERMISSION_ERROR' 
-            });
-            setLoading(false);
-            return;
-          }
-        }
-        
-        const netInfo = await NetInfo.fetch();
-        const isESP32 = await checkESP32Connection();
-        const networkName =
-          netInfo.details && 'ssid' in netInfo.details
-            ? ((netInfo.details as any).ssid as string) || 'Unknown'
-            : 'Unknown';
+      // Replace with your actual ESP32 webserver URL
+      const response = await fetch('http://192.168.4.1/getAllLogs');
+      console.log('Response from ESP32:', response);
 
-        if (!isCancelled) {
-          setConnectionStatus({ connected: isESP32, networkName });
-        }
-
-          // if not on SAGE network, bail
-      if (!isESP32) {
-        if (!isCancelled) {
-          setError({ message: 'Not connected to SAGE device network', code: 'NETWORK_ERROR' });
-          setData(null);
-          setLoading(false);
-        }
-        return;
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
       }
 
-      // 3. fetch logs
-      try {
-        const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 5000);
+      const jsonData = await response.json();
+      console.log('Parsed JSON data:', jsonData);
 
-        const resp = await fetch('http://192.168.4.1/getAllLogs', {
-          method: 'GET',
-          headers: { Accept: 'application/json' },
-          signal: controller.signal,
-        });
-        clearTimeout(timeoutId);
-
-        if (!resp.ok) {
-          throw new Error(`HTTP error: ${resp.status}`);
-        }
-
-        const json = await resp.json();
-        if (!isCancelled) setData(json);
-      } catch (err: any) {
-        if (!isCancelled) {
-          setError({
-            message: err.message ?? 'Unable to communicate with device',
-            code: 'FETCH_ERROR',
-          });
-          setData(null);
-        }
-      } finally {
-        if (!isCancelled) setLoading(false);
+      // Extract the logs array from the response
+      if (jsonData && typeof jsonData === 'object' && Array.isArray(jsonData.logs)) {
+        console.log('Found logs array with length:', jsonData.logs.length);
+        setData(jsonData.logs);
+      } else {
+        console.error('Expected object with logs array but got:', jsonData);
+        setData([]);
       }
-      } catch (err: any) {
-          setError({
-            message: err.message ?? 'Error with permission or network connection',
-            code: 'FETCH_ERROR',
-          });
-          setData(null);
-      }
+
+      setConnectionStatus('connected');
+    } catch (err) {
+      console.error('Error fetching data from ESP32:', err);
+      setError(err);
+      setData([]);
+      setConnectionStatus('error');
+    } finally {
+      setLoading(false);
     }
-    fetchLogs();
-    return () => {
-      isCancelled = true;
-    };
-  }, []);
+  }
 
-  //console.log( { data, loading, error, connectionStatus })
-  return { data, loading, error, connectionStatus };
+  fetchData();
+}, []);
+  console.log("ESP32 data state:", 
+  { 
+      dataPresent: !!data, 
+      dataLength: data?.length ?? 'N/A',
+      loading, 
+      error, 
+      connectionStatus 
+  });
+  return { 
+      data: Array.isArray(data) ? data : [], 
+      loading, 
+      error, 
+      connectionStatus 
+    };
 }
