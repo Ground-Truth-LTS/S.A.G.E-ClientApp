@@ -55,7 +55,7 @@ size: {
     xl5: 64,
   },
   space: {
-    $true: 16, 
+    $true: 0, 
     sm: 8,
     '-sm': -8,
   },
