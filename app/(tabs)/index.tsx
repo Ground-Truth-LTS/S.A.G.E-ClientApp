@@ -640,9 +640,9 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
 
 const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
   const { selectionMode } = useSelectionMode();
-  const logList = [];
-
-  if (!status.connected) {
+  
+  // Ensure proper connection status handling
+  if (!status || status !== 'connected') {
     return (
       <View
         height={500}
@@ -651,73 +651,90 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         justifyContent='center'
         alignItems='center'
       >
-      <Text
-        style={styles.noDeviceText}
-        >Device not connected
+        <Text style={styles.noDeviceText}>
+          {status === 'error' ? 'Connection error' : 'Device not connected'}
         </Text>
+        {error && (
+          <Text fontSize={14} color="$color8" paddingTop={10}>
+            {error.message || 'Check your device and try again'}
+          </Text>
+        )}
       </View>
-      );
-
+    );
   }
 
-  if (!data || data == null || data.length === 0) {
+  // Verify that data is valid and properly structured
+  if (!data || !Array.isArray(data) || data.length === 0) {
     return (
       <View
         height={500}
         width="100%"
-        position="relative" // Th
+        position="relative"
         justifyContent='center'
         alignItems='center'
       >
-      <Text
-        style={styles.noDeviceText}
-        >No logs in device
+        <Text style={styles.noDeviceText}>
+          No logs in device
         </Text>
       </View>
-      );
+    );
   }
 
-  for(let index = 0; index < data?.length; index++){
-    logList.push(
-      <ListItem
-        key={index}
-        hoverTheme
-        pressTheme
-        title={data[index].fileName}
-        subTitle={data[index].fileName}
-        icon={FileText}
-        iconAfter={
-        selectionMode ? (            
-            <Checkbox 
-              id={"checkbox-"+data[index].session_id} 
-              size="$xl3"
-              backgroundColor="$background"
-              borderRadius={16}
-              borderColor="$color9"
-              borderWidth={2}
-            >
-              <Checkbox.Indicator > 
-                <CheckIcon color="$color9" />
-              </Checkbox.Indicator>
-            </Checkbox>) 
-            : <Download color="$color9"></Download>
-          }
-        color="$color7"
-        scaleIcon={1.7}
-        padding={10}
-        size={16}
-        borderWidth={0}
-        borderBottomWidth={1}
-        borderColor="$color6"
-        backgroundColor="$color1"
-        onPress={() => null /* TODO: Implement Download action, remember to take in account that there can be a selection of logs to download, see Figma prototype for more information */}
-      ></ListItem>
-    )
-  }
-
-  return logList;
-
-}
+  // Safe data mapping with React.Fragment as container
+  return (
+    <React.Fragment>
+      {data.map((item, index) => {
+        // Safely access properties with fallbacks
+        const fileName = item?.name || item?.fileName || `Log ${index + 1}`;
+        const fileDate = item?.date || 'No date information';
+        
+        return (
+          <ListItem
+            key={`device-log-${index}`}
+            hoverTheme
+            pressTheme
+            title={fileName}
+            subTitle={fileDate}
+            icon={FileText}
+            iconAfter={
+              selectionMode ? (            
+                <Checkbox 
+                  id={`checkbox-${index}`}
+                  size="$xl3"
+                  backgroundColor="$background"
+                  borderRadius={16}
+                  borderColor="$color9"
+                  borderWidth={2}
+                >
+                  <Checkbox.Indicator>
+                    <CheckIcon color="$color9" />
+                  </Checkbox.Indicator>
+                </Checkbox>
+              ) : (
+                <Download color="$color9" />
+              )
+            }
+            color="$color7"
+            scaleIcon={1.7}
+            padding={10}
+            size={16}
+            borderWidth={0}
+            borderBottomWidth={1}
+            borderColor="$color6"
+            backgroundColor="$color1"
+            onPress={() => {
+              // Handle download action
+              if (!selectionMode) {
+                console.log(`Downloading file: ${fileName}`);
+                // Implement download logic here
+              }
+            }}
+          />
+        );
+      })}
+    </React.Fragment>
+  );
+};
 
 /**
  * * DownloadConfirmationModal component
