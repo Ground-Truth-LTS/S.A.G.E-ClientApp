@@ -1,7 +1,7 @@
 
 // Tamagui imports
-import { TamaguiProvider } from '@tamagui/core';
-import { config } from '../tamagui.config'
+import { TamaguiProvider } from 'tamagui';
+import { tamaguiConfig }  from '../tamagui.config'
 import { PortalProvider } from 'tamagui';
 // Expo imports
 import { useFonts } from 'expo-font';
@@ -14,16 +14,9 @@ import { useEffect, useState } from 'react';
 
 // SQLite imports
 import { 
-  createDB,
-  insertDevice,
+  createEmptyDB,
   insertDummyData,
-  getDevices,
-  getAllSession,
-  getSensorData,
-  deleteAllFromDevice,
-  getSessionByTimeframe,
-  dropAllTables } from '@/database/db';
-import * as SQLite from 'expo-sqlite';
+} from '@/database/db';
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
@@ -33,8 +26,8 @@ import BootSplash from '../bootsplash';
 import { ThemeProvider, useTheme as isDarkProvider } from '../context/ThemeProvider';
 import { YStack } from 'tamagui';
 import { SelectionModeProvider } from '@/context/SelectionModeProvider';
-import { ToastProvider } from '@tamagui/toast';
-
+//import { ToastProvider } from '@tamagui/toast';
+ 
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
@@ -53,13 +46,13 @@ export default function RootLayout() {
     return null;
   }
   return (
-    <TamaguiProvider config={config} defaultTheme='light'>
+    <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
       <SQLiteProvider databaseName='sage.db' onInit={ async (db) => {
-        await createDB();
+        await createEmptyDB(db);
       }}>
         <PortalProvider shouldAddRootHost>
         <ThemeProvider>
-          <ToastProvider>
+          {/* <ToastProvider> */}
             <SelectionModeProvider>
               <StatusBarManager />
               <YStack flex={1} backgroundColor="$background">
@@ -84,7 +77,7 @@ export default function RootLayout() {
                   
               </YStack>
             </SelectionModeProvider>
-          </ToastProvider>
+          {/* </ToastProvider> */}
         </ThemeProvider>
         </PortalProvider>
       </SQLiteProvider>

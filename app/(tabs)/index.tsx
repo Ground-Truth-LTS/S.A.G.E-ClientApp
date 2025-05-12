@@ -7,7 +7,7 @@ import { useSQLiteContext } from 'expo-sqlite';
 // Tamagui imports
 import { ListItem, useListItem, TabLayout, TabsTabProps, StackProps, Button, Text, H4 } from 'tamagui';
 import { View, YStack, XStack, ScrollView} from 'tamagui';
-import { Toast, useToastController, useToastState, ToastViewport } from '@tamagui/toast'
+//import { Toast, useToastController, useToastState, ToastViewport } from '@tamagui/toast'
 import { AnimatePresence, Separator, SizableText, Tabs, styled, useTheme, Checkbox, RadioGroup, Label } from 'tamagui';
 import { FileText, ChevronRight, Download, Filter, ListFilter} from '@tamagui/lucide-icons';  
 import { 
@@ -120,7 +120,7 @@ export default function LogsList() {
         style={{ backgroundColor: isDarkMode ? "$color1" : "white" }}
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-          backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+          backgroundColor="rgba(0, 0, 0, 1)" // Semi-transparent background
         >
           <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 225, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
             
@@ -382,7 +382,8 @@ export default function LogsList() {
          
           <XStack 
             width="100%" 
-            justifyContent='space-evenly' >
+            justifyContent='space-evenly' 
+            alignItems='center'>
                {/* 
               TODO: Implementent different sorts, this button is going to open a pop up, 
               preferably a modal, with the different options to sort the logs, 
@@ -476,8 +477,11 @@ export default function LogsList() {
             pressStyle={{ backgroundColor: "transparent", borderWidth: 0 }}
             onPress={toggleSelectionMode}
             width={60}
+            height={40}
+            padding={0}
+            margin={0}
             > 
-              {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1" paddingRight={10}>Select</Text>} 
+              {selectionMode ? <X size={25} /> : <Text fontSize={15} color="$accent1" padding={0} margin={0}>Select</Text>} 
             </Button>
           </XStack>
           </YStack>
@@ -485,6 +489,7 @@ export default function LogsList() {
     
           <Tabs.Content value="phone" backgroundColor="$color1" borderColor="$color1" height={"100%"}>
             <ScrollView
+            
               contentContainerStyle={{
                 paddingBottom: 120, // Add extra padding at the bottom for the tab bar
               }}>
@@ -748,30 +753,30 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
   );
 }
 // TODO Complete and test after database is working
-const DisplayToast: React.FC = () => {
-  const currentToast = useToastState()
-  if (!currentToast) return null
-  return (
-    <Toast
-      key={currentToast.id}
-      duration={currentToast.duration}
-      enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
-      exitStyle={{ opacity: 0, scale: 1, y: -20 }}
-      y={0}
-      opacity={1}
-      scale={1}
-      animation="100ms"
-      viewportName={currentToast.viewportName}
-    >
-      <YStack>
-        <Toast.Title>{currentToast.title}</Toast.Title>
-        {!!currentToast.message && (
-          <Toast.Description>{currentToast.message}</Toast.Description>
-        )}
-      </YStack>
-    </Toast>
-  );
-}
+// const DisplayToast: React.FC = () => {
+//   const currentToast = useToastState()
+//   if (!currentToast) return null
+//   return (
+//     <Toast
+//       key={currentToast.id}
+//       duration={currentToast.duration}
+//       enterStyle={{ opacity: 0, scale: 0.5, y: -25 }}
+//       exitStyle={{ opacity: 0, scale: 1, y: -20 }}
+//       y={0}
+//       opacity={1}
+//       scale={1}
+//       animation="fast"
+//       viewportName={currentToast.viewportName}
+//     >
+//       <YStack>
+//         <Toast.Title>{currentToast.title}</Toast.Title>
+//         {!!currentToast.message && (
+//           <Toast.Description>{currentToast.message}</Toast.Description>
+//         )}
+//       </YStack>
+//     </Toast>
+//   );
+// }
 
 
 const styles = StyleSheet.create({

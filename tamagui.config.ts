@@ -1,6 +1,5 @@
-import { defaultConfig } from '@tamagui/config/v4'
 import { themes } from './theme'
-import { createTamagui, createFont } from '@tamagui/core'
+import { createTamagui, createFont, createTokens } from 'tamagui'
 import { createAnimations } from '@tamagui/animations-react-native'
 
 const headingFont = createFont({
@@ -31,42 +30,67 @@ const headingFont = createFont({
     7: 58,
     8: 74,
   },
+  face: {
+    '400': { normal: 'SpaceMono-Regular' }, // Adjust font file names
+    '700': { normal: 'SpaceMono-Bold' },   // Adjust font file names
+  },
 })
 
-export const config = createTamagui({
+
+const tokens = createTokens({
+size: {
+    $true: 16, // Corrected: $ prefix
+    1: 4,
+    2: 8,
+    3: 12,
+    4: 16,
+    5: 20,
+    sm: 8,
+    md: 12,
+    lg: 20,
+    xl: 32,
+    xl2: 40,
+    xl3: 48,
+    xl4: 56,
+    xl5: 64,
+  },
+  space: {
+    $true: 16, 
+    sm: 8,
+    '-sm': -8,
+  },
+  radius: {
+    $true: 8,  // Corrected: $ prefix, and gave it a more common default
+    0: 0,    // Often good to have a zero token
+    none: 0,
+    sm: 3,
+    md: 8,
+    lg: 12,
+    xl: 20,
+  },
+  color: {
+    white: "#ffffff",
+    black: "#000000",
+  },
+  zIndex: { 
+    $true: 0,
+    0: 0,
+    1: 100,
+    2: 200,
+    3: 300,
+    4: 400,
+    5: 500,
+  }
+  });
+
+export const tamaguiConfig = createTamagui({
   fonts: {
-    heading: headingFont
+    heading: headingFont,
+    body: headingFont
   },
-  // act like CSS variables at your root
-  tokens: {
-    // width="$sm"
-    size: {    
-      1: 4,
-      2: 8,
-      3: 12,
-      4: 16,
-      5: 20,
-      sm: 8,
-      md: 12,
-      lg: 20,
-      xl: 32,
-      xl2: 40,
-      xl3: 48,
-      xl4: 56,
-      xl5: 64,
-    },
-    // margin="$-sm"
-    space: { '-sm': 8 },
-    // radius="$none"
-    radius: { none: 0, sm: 3, md: 8, lg: 12, xl: 20 },
-    color: { white: '#fff', black: '#000' },
-  },
-
+  tokens: tokens,
   themes: themes,
-
-  // media query definitions can be used to style,
-  // but also can be used with "groups" to do container queries by size:
-  media: {
+   media: {
     sm: { maxWidth: 860 },
     gtSm: { minWidth: 860 + 1 },
     short: { maxHeight: 820 },
@@ -78,12 +102,9 @@ export const config = createTamagui({
     // <View px={20} />
     px: 'paddingHorizontal',
   },
-
   settings: {
     disableSSR: true, // for client-side apps gains a bit of performance
-    allowedStyleValues: 'somewhat-strict-web', // if targeting only web
   },
-
   animations: createAnimations({
     superfast: {
       damping: 40,
@@ -108,12 +129,11 @@ export const config = createTamagui({
 
 
 })
+export default tamaguiConfig;
 
-type Conf = typeof config
+type Conf = typeof tamaguiConfig;
 
 // ensure types work
 declare module 'tamagui' {
   interface TamaguiCustomConfig extends Conf {}
 }
-
-export default config;

@@ -2,50 +2,59 @@ import * as SQLite from 'expo-sqlite';
 
 
 // DB Creation
-export const createDB = async  () => {
-
-  const db = await SQLite.openDatabaseAsync('sage.db');
-  await db.execAsync(`PRAGMA foreign_keys = ON;`);
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS Device (
-      device_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      device_name TEXT
-      );
-    `);
-  await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS Session (
-        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp_start TEXT,
-        timestamp_end TEXT,
-        location TEXT,
-        device_id INTEGER,
-        FOREIGN KEY (device_id) REFERENCES Device(device_id)
-      );
-    `)
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
-        data_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id INTEGER,
-        nitrogen REAL,
-        phosphorus REAL,
-        potassium REAL,
-        pH REAL,
-        moisture REAL,
-        temperature REAL,
-        FOREIGN KEY (session_id) REFERENCES Session(session_id)
-      );`)
-    return db;
+export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
+  console.log("[DB] Creating empty database...");
+  try {
+    await db.withTransactionAsync(async () => {
+      console.log("[DB] Transaction started. Setting PRAGMA...");
+      await db.execAsync(`PRAGMA foreign_keys = ON;`);
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Device (
+          device_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          device_name TEXT
+        );
+      `);
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Session (
+          session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp_start TEXT,
+          timestamp_end TEXT,
+          location TEXT,
+          device_id INTEGER,
+          FOREIGN KEY (device_id) REFERENCES Device(device_id)
+        );
+      `);
+      console.log("[DB] Creating Processed_Sensor_Data table...");
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
+          data_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id INTEGER,
+          nitrogen REAL,
+          phosphorus REAL,
+          potassium REAL,
+          pH REAL,
+          moisture REAL,
+          temperature REAL,
+          FOREIGN KEY (session_id) REFERENCES Session(session_id)
+        );
+      `);
+    });
+    console.log("[DB] Schema creation transaction completed successfully.");
+  } catch (error) {
+    console.error("[DB] Error during schema creation transaction:", error);
+    throw error;
+  }
 }
 
 // Insert into Tables
 
-export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: String) => {
-  const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', device_name);
+export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: string) => {
+  const result = await db.runAsync('INSERT INTO Device (device_name) VALUES (?)', [device_name]);
   //console.log(result.lastInsertRowId,result.changes);
 }
 
-export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : String,
-  timestamp_end : String, location : String, device_id  : Number) => {
+export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : string,
+  timestamp_end : string, location : string, device_id  : number) => {
   const result = await db.runAsync(`
     INSERT INTO Session (
     timestamp_start,
@@ -55,8 +64,8 @@ export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start 
   //console.log(result.lastInsertRowId,result.changes);
 }
 
-export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : Number,
-   nitrogen : Number, phosphorus : Number, potassium : Number, pH : Number, moisture : Number, temperature : Number) => {
+export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : number,
+   nitrogen : number, phosphorus : number, potassium : number, pH : number, moisture : number, temperature : number) => {
   const result = await db.runAsync(`INSERT INTO Processed_Sensor_Data (
         session_id,
         nitrogen,

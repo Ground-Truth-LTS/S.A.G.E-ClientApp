@@ -33,11 +33,12 @@ export default function TabLayout() {
       tabBarActiveTintColor: colorScheme.accent1?.get(),
       headerShown: false,
       tabBarButton: HapticTab,
+    
       tabBarBackground: TabBarBackground,
       tabBarStyle: selectionMode ? { display: 'none' } : Platform.select({
         ios: {
           // Use a transparent background on iOS to show the blur effect
-          position: 'absolute',
+          position: 'absolute', 
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
           shadowOpacity: 0.2,
@@ -45,17 +46,15 @@ export default function TabLayout() {
           marginBottom: 10,
         },
         default: {
-          backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
-          elevation: 2,
-          marginBottom: 10,
+          backgroundColor: "transparent",
+          marginBottom: 25,
           marginHorizontal: 10,
-          borderRadius: 10,
           height: 70,
-          paddingBottom: 10, // Try 0 or small value
+          paddingBottom: 10, 
           paddingTop: 10,
-          borderColor: isDarkMode ? colorScheme.accent10?.get() : 'rgba(0, 0, 0, 0.1)',
-          borderWidth: isDarkMode ? 1 : 1.25,
-          borderTopWidth: isDarkMode ? 0 : 1.25,
+          borderRadius: 0,
+          borderColor: 'transparent',
+          borderWidth: 0,
         },
       }),
     }}>

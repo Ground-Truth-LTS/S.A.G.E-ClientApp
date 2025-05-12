@@ -1,6 +1,5 @@
 import React from 'react';
 import { StyleSheet, TouchableOpacity } from 'react-native';
-import { Colors } from '@/constants/Colors';
 import { View, useTheme} from 'tamagui';
  
 export function CircularTabBarButton({ children, ...props }: { children: React.ReactNode; [key: string]: any }) {
