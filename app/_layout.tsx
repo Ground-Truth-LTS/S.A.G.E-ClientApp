@@ -26,6 +26,7 @@ import BootSplash from '../bootsplash';
 import { ThemeProvider, useTheme as isDarkProvider } from '../context/ThemeProvider';
 import { YStack } from 'tamagui';
 import { SelectionModeProvider } from '@/context/SelectionModeProvider';
+import { useTheme } from "tamagui";
 //import { ToastProvider } from '@tamagui/toast';
  
 export default function RootLayout() {
@@ -34,7 +35,6 @@ export default function RootLayout() {
   });
   const [splashVisible, setSplashVisible] = useState(true);
   // Handle font loading and splash screen
-  
   useEffect(() => {
     if (loaded) {
       // Fonts are loaded, we can hide the splash in a moment
@@ -45,6 +45,7 @@ export default function RootLayout() {
   if (!loaded) {
     return null;
   }
+
   return (
     <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
       <SQLiteProvider databaseName='sage.db' onInit={ async (db) => {
@@ -55,27 +56,7 @@ export default function RootLayout() {
           {/* <ToastProvider> */}
             <SelectionModeProvider>
               <StatusBarManager />
-              <YStack flex={1} backgroundColor="$background">
-                <Stack
-                  screenOptions={{
-                    // contentStyle sets the background behind your screen component
-                    contentStyle: {
-                      backgroundColor: '$background',
-                    },
-                    // headerStyle sets the background of the native header bar
-                  }}
-                >
-                  <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
-                  <Stack.Screen name="+not-found" />
-                </Stack>
-          
-                {splashVisible && (
-                  <BootSplash.BootSplashScreen
-                    onAnimationComplete={() => setSplashVisible(false)}
-                  />
-                )}
-                  
-              </YStack>
+              <AppContent splashVisible={splashVisible} onSplashComplete={() => setSplashVisible(false)} />
             </SelectionModeProvider>
           {/* </ToastProvider> */}
         </ThemeProvider>
@@ -83,6 +64,36 @@ export default function RootLayout() {
       </SQLiteProvider>
     </TamaguiProvider>
   );
+}
+
+function AppContent({ splashVisible, onSplashComplete }: { splashVisible: boolean; onSplashComplete: () => void }) {
+  const { isDarkMode } = isDarkProvider();
+  // If you need Tamagui's theme, import it here
+  const tamaguiTheme = useTheme(); // <- Import this at the top of this component
+  
+  return (
+    <YStack flex={1} backgroundColor="$background">
+      <Stack
+        screenOptions={{
+          // contentStyle sets the background behind your screen component
+          contentStyle: {
+            backgroundColor: isDarkMode ? tamaguiTheme.background?.get() : tamaguiTheme.background?.get(),
+          },
+          // headerStyle sets the background of the native header bar
+        }}
+      >
+        <Stack.Screen name="(tabs)" options={{ headerShown: false }}  />
+        <Stack.Screen name="+not-found" />
+      </Stack>
+
+      {splashVisible && (
+        <BootSplash.BootSplashScreen
+          onAnimationComplete={onSplashComplete}
+        />
+      )}
+        
+    </YStack>
+  )
 }
 
 function StatusBarManager() {
