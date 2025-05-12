@@ -1,6 +1,6 @@
 // Expo and React imports 
 import React, { useEffect, useState, useMemo } from 'react';
-import { StyleSheet, Platform, Modal } from 'react-native';
+import { StyleSheet, Platform, Modal, TextInput } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { useNavigation } from 'expo-router';
 import { useSQLiteContext } from 'expo-sqlite';
@@ -43,6 +43,10 @@ export default function LogsList() {
   const [logs, setLogs] = useState([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+  const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [logToRename, setLogToRename] = useState<any>(null);
+  const [toastVisible, setToastVisible] = useState(false);
+  const [newSessionId, setNewSessionId] = useState("");
   const { bottom } = useSafeAreaInsets();
   const {
     data,
@@ -50,6 +54,13 @@ export default function LogsList() {
     error,
     connectionStatus: status,
   } = useESP32Data();
+
+  useEffect(() => {
+  if (toastVisible) {
+    const timer = setTimeout(() => setToastVisible(false), 3000); // Hide after 3 seconds
+    return () => clearTimeout(timer); // Cleanup the timer
+  }
+}, [toastVisible]);
 
   useEffect(() => {
     // Logs is equivalent
@@ -233,15 +244,32 @@ export default function LogsList() {
 
     const handleDelete = () => {
       // Logic to delete selected logs
-      // map from the selectedLogs and eliminate from the logs and de selectedLogs
+      // Remove selected logs from the logs array
+      const remainingLogs = logs.filter(log => !selectedLogs.includes(log));
+
+      // Update state
+      setLogs(remainingLogs);
+
+      // Clear the selection
+      toggleLogSelection([]);
+
+      // Exit selection mode if you’d like
+      toggleSelectionMode();
     };
 
     const handleDownload = () => {
       // Logic to download selected logs
+      setToastVisible(true);
     };
 
     const handleRename = () => {
       // Logic to rename selected log
+      if (selectedLogs.length === 1) {
+      const logToEdit = selectedLogs[0];
+      setLogToRename(logToEdit); // Set the log to rename
+      setNewSessionId(logToEdit.session_id || ""); // Pre-fill the modal with the current session_id
+      setRenameModalVisible(true); // Open the rename modal
+    }
     };
 
     const allSelected = logs.length > 0 && selectedLogs.length === logs.length;
@@ -296,7 +324,7 @@ export default function LogsList() {
               size="$xl2"
               borderRadius={16}
               borderColor="$color9"
-              backgroundColor={allSelected ? "$color9" : "transparent"}
+              backgroundColor={allSelected ? "$color9" : "transparen  t"}
               borderWidth={logs.length === 0 ? 0.5 : 2}
               disabled={logs.length === 0}
               checked={allSelected}
@@ -611,7 +639,103 @@ export default function LogsList() {
       </YStack>
       {selectionMode && <ToolBar />}
       <SortModal/>
+      <Modal
+        visible={renameModalVisible}
+        transparent={true}
+        animationType="slide"
+        onRequestClose={() => setRenameModalVisible(false)}
+      >
+        <View
+          style={{
+            flex: 1,
+            justifyContent: 'center',
+            alignItems: 'center',
+            backgroundColor: 'rgba(0, 0, 0, 0.5)',
+          }}
+        >
+          <View
+            style={{
+              width: 300,
+              padding: 20,
+              backgroundColor: isDarkMode ? colorScheme.color1?.get() : 'white',
+              borderRadius: 10,
+            }}
+          >
+            <Text style={{ fontSize: 18, marginBottom: 10 }}>Rename Log</Text>
+            <TextInput
+              value={newSessionId}
+              onChangeText={setNewSessionId}
+              placeholder="Enter new session ID"
+              style={{
+                borderWidth: 1,
+                borderColor: isDarkMode ? colorScheme.color5?.get() : 'gray',
+                borderRadius: 5,
+                padding: 10,
+                marginBottom: 20,
+              }}
+            />
+            <XStack justifyContent="space-between">
+              <Button
+                padding={20}
+                width="50%"
+                height={65}
+                backgroundColor={isDarkMode ? "$color1" : "white"}
+                marginRight={1}
+                borderColor="$accent2"
+                borderWidth={1}
+                borderTopWidth={1}
+                pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
+                onPress={() => setRenameModalVisible(false)}
+              >
+                <Text fontSize={18} color="$accent1">Cancel</Text>
+              </Button>
+              <Button
+              padding={20}
+            width="50%"
+            height={65}
+            backgroundColor="$accent2"
+            borderTopEndRadius={0}
+            borderEndStartRadius={0}
+            borderStartEndRadius={0}
+            borderStartStartRadius={0}
+            borderEndEndRadius={10}
+            pressStyle={{ backgroundColor: "$color1", borderWidth: 0 }}
+                onPress={() => {
+                  if (logToRename) {
+                    const updatedLogs = logs.map((log) =>
+                      log === logToRename ? { ...log, session_id: newSessionId } : log
+                    );
+                    setLogs(updatedLogs); // Update the logs state
+                    setRenameModalVisible(false); // Close the modal
+                    toggleLogSelection([]); // Clear selection
+                  }
+                }}
+                backgroundColor={colorScheme.accent2?.get()}
+              >
+                <Text fontSize={18} color="white">Save</Text>
+              </Button>
+            </XStack>
+          </View>
+        </View>
+      </Modal>
       {/*<ToastViewport></ToastViewport>*/}
+      {toastVisible && (
+  <View
+    style={{
+      position: 'absolute',
+      bottom: 125,
+      left: '50%',
+      transform: [{ translateX: -150 }],
+      width: 300,
+      padding: 10,
+      backgroundColor: isDarkMode ? colorScheme.color3?.get() : 'green',
+      borderRadius: 10,
+      alignItems: 'center',
+    }}
+  >
+    <Text style={{ color: 'white', fontSize: 16 }}>Successfully Downloaded!</Text>
+  </View>
+)}
     </View>
   );
 }
@@ -788,7 +912,7 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
               pressStyle={{ backgroundColor: "$accent1", borderWidth: 0 }}
               >
                 <Text fontSize={18} color="white">Confirm</Text>
-            </Button>
+              </Button>
           </View>
         </View>
       </View>
