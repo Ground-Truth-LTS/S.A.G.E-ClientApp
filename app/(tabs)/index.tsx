@@ -233,6 +233,7 @@ export default function LogsList() {
 
     const handleDelete = () => {
       // Logic to delete selected logs
+      // map from the selectedLogs and eliminate from the logs and de selectedLogs
     };
 
     const handleDownload = () => {
@@ -532,8 +533,8 @@ export default function LogsList() {
                         key={log.session_id ?? index}
                         hoverTheme
                         pressTheme
-                        title={log.title ?? `Log ${index + 1}`}
-                        subTitle={log.description ?? `Log ${index + 1} description`}
+                        title={`Log ${log.session_id ?? index + 1}`}
+                        subTitle={log.timestamp_end ?? `Log ${index + 1} description`}
                         icon={ selectionMode ? (            
                           <Checkbox 
                             id={"checkbox-"+log.session_id} 
@@ -570,7 +571,7 @@ export default function LogsList() {
                         onPress={() => 
                           {
                             if(!selectionMode)
-                              navigateToLog(log.session_id?.toString() ?? `${index + 1}`)
+                              navigateToLog(log.session_id)
                           }}
                       />
                     )})
