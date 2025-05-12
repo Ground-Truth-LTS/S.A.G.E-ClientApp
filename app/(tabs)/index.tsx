@@ -110,6 +110,13 @@ export default function LogsList() {
   }, [data, sortOrder]);
 
   const SortModal: React.FC = () => {
+    const [localSortOrder, setLocalSortOrder] = useState<'new-old' | 'old-new'>(sortOrder);
+
+    const handleApplySort = () => {
+      // Only update the parent state when Apply is clicked
+      setSortOrder(localSortOrder);
+      setSortModalVisible(false);
+    };
 
     return (
       <Modal
@@ -120,7 +127,7 @@ export default function LogsList() {
         style={{ backgroundColor: isDarkMode ? "$color1" : "white" }}
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-          backgroundColor="rgba(0, 0, 0, 1)" // Semi-transparent background
+          backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
         >
           <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 225, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
             
@@ -130,10 +137,18 @@ export default function LogsList() {
             
             <View style={{ flex: 1 }}>
 
-              <RadioGroup aria-labelledby="Select one order" defaultValue="new-old" name="form" value={sortOrder} onValueChange={(val) => setSortOrder(val as 'new-old' | 'old-new')}>
+              <RadioGroup 
+                aria-labelledby="Select one order"
+                defaultValue={localSortOrder}
+                name="form" 
+                value={localSortOrder}
+                onValueChange={(val) => setLocalSortOrder(val as 'new-old' | 'old-new')}>
                 <YStack alignItems="center" justifyContent='space-evenly' height={100} padding={10}>
                   <XStack alignItems="center">
-                    <RadioGroup.Item value="new-old" id="new-old-radio-item" size="$xl2">
+                    <RadioGroup.Item 
+                      value="new-old" 
+                      id="new-old-radio-item" 
+                      size="$xl2">
                       <RadioGroup.Indicator scale={1.3} />
                     </RadioGroup.Item>
 
@@ -143,7 +158,10 @@ export default function LogsList() {
                   </XStack>
 
                    <XStack alignItems="center">
-                    <RadioGroup.Item value="old-new" id="old-new-radio-item" size="$xl2">
+                    <RadioGroup.Item 
+                      value="old-new" 
+                      id="old-new-radio-item" 
+                      size="$xl2">
                       <RadioGroup.Indicator scale={1.3} />
                     </RadioGroup.Item>
 
@@ -158,11 +176,16 @@ export default function LogsList() {
                 <Button 
                   padding={20} 
                   width={"50%"}
+                  height={65}
                   backgroundColor={ isDarkMode ? "$color1" : "white"} 
                   onPress={() => setSortModalVisible(false)}
                   borderStartEndRadius={10}
                   borderColor="$accent2"
+                  borderTopEndRadius={0}
+                  borderTopStartRadius={0}
+                  borderEndEndRadius={0}
                   borderWidth={0}
+                  
                   borderTopWidth={1}
                   pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
                   >
@@ -172,8 +195,13 @@ export default function LogsList() {
                 <Button 
                   padding={20} 
                   width={"50%"}
+                  height={65}
                   backgroundColor="$accent2"
-                  onPress={() => setSortModalVisible(false)}
+                  borderTopEndRadius={0}
+                  borderEndStartRadius={0}
+                  borderStartEndRadius={0}
+                  borderStartStartRadius={0}
+                  onPress={handleApplySort}
                   borderEndEndRadius={10}
                   pressStyle={{ backgroundColor: "$accent1", borderWidth: 0 }}
                   >
@@ -495,7 +523,7 @@ export default function LogsList() {
               }}>
                 <YStack margin={20}>
                     {/*This is the ListItem for the Mobile tab*/}
-                    {logs?.map((log: any, index: number) => { 
+                    {logs && logs.length > 0 ? (logs?.map((log: any, index: number) => { 
                       
                       const isSelected = selectedLogs.includes(log);
   
@@ -545,7 +573,22 @@ export default function LogsList() {
                               navigateToLog(log.session_id?.toString() ?? `${index + 1}`)
                           }}
                       />
-                    )})}
+                    )})
+                  ) : (
+                    <View
+                      height={500}
+                      width="100%"
+                      position="relative"
+                      justifyContent='center'
+                      alignItems='center'
+                    >
+                      <Text
+                        style={styles.noDeviceText}
+                      >
+                        No logs downloaded
+                      </Text>
+                    </View>
+                    )}
               </YStack>  
             </ScrollView>
           </Tabs.Content>
