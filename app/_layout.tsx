@@ -51,6 +51,7 @@ export default function RootLayout() {
     <TamaguiProvider config={tamaguiConfig} defaultTheme='light'>
       <SQLiteProvider databaseName='sage.db' onInit={ async (db) => {
         await createEmptyDB(db);
+        // await insertDummyData(db);
       }}>
         <PortalProvider shouldAddRootHost>
         <ThemeProvider>
