@@ -35,6 +35,8 @@ export default function TabLayout() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { selectionMode, selectedLogs } = useSelectionMode();
   const [isRecording, setIsRecording] = useState(false);
+
+
   useEffect(() => {
     const fetchConnectionStatus = async () => {
       const connectionStatus = await checkESP32Connection();
@@ -72,21 +74,27 @@ export default function TabLayout() {
     return `${mins}:${secs}`;
   };
 
-
-  // TODO: Add Alert when booting for the first time to show the instructions, you can use the Dialog Sheet from the System or using the React Native Alert Component, try do it as close as possible to the Figma model
   const handleRecordPress = useCallback(async () => {
-    try {
-      if (!isRecording) {
-        await startESP32Logging();
-      } else {
-        await stopESP32Logging();
+    if (isConnected) {
+      try {
+        // if (!isRecording) {
+        //   // Start recording
+        //   console.log('Starting recording...');
+        //   await startESP32Logging();
+        // } else {
+        //   // Stop recording
+        //   console.log('Stopping recording...');
+        //   await stopESP32Logging();
+        // }
+        // Toggle recording state AFTER the API calls
+        setIsRecording(prev => !prev);
+        console.log('Recording state changed:', !isRecording);
+      } catch (error) {
+        console.error('Recording operation failed:', error);
       }
-      console.log("starting esp32")
-      setIsRecording(r => !r);
-    } catch (err) {
-    console.error(err);
     }
-  }, [isRecording]);
+  }, [isConnected, isRecording]);
+
   return (
     <Tabs
     screenOptions={{
@@ -139,31 +147,36 @@ export default function TabLayout() {
           title: '',
           tabBarButton: () => {
             return (
-              <CircularTabBarButton
-                active={isConnected} 
-                onPress={handleRecordPress}
-                disabled={!isConnected || selectionMode}
-              >
-                {isRecording
-                  ? <Square fill="white" size={24} color="white"/>
-                  : <Circle fill="white" size={24} color="white"/>
-                }
-                {isRecording && (
-                <Text
-                  position="absolute"
-                  bottom={Platform.OS === 'ios' ? 95 : 105} // Position below tab bar
-                  alignSelf="center"
-                  zIndex={100}
-                  color="$accent1"
-                  fontWeight="bold"
-                  fontSize={16}
-                >
-                  {formatTime(elapsedTime)}
-                </Text> )}
-              </CircularTabBarButton>
-     
-             
-            );
+            <>
+          <CircularTabBarButton
+            active={isConnected} 
+            onPress={handleRecordPress}
+          >
+            {isRecording
+              ? <Square fill="white" size={24} color="white"/>
+              : <Circle fill="white" size={24} color="white"/>
+            }
+          </CircularTabBarButton>
+          
+          {isRecording && (
+            <View style={{
+              position: 'absolute',
+              bottom: Platform.OS === 'ios' ? 95 : -10,
+              alignSelf: 'center',
+              zIndex: 100,
+            }}>
+              <Text style={{
+                color: '$color1',
+                fontWeight: 'bold',
+                fontSize: 12,
+                textAlign: 'center',
+              }}>
+                {formatTime(elapsedTime)}
+              </Text>
+            </View>
+          )}
+        </>
+      );
           },
         }}
       />

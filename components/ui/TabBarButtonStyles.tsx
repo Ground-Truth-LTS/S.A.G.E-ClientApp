@@ -4,27 +4,31 @@ import { View, useTheme, Button} from 'tamagui';
  
 interface CircularTabBarButtonProps {
   active?: boolean;
-  disabled?: boolean;
   onPress?: () => void;
+  disabled?: boolean;
   children: React.ReactNode;
 }
 
 export function CircularTabBarButton({ 
   children, 
-  active=false, 
-
+  active=false,
+  disabled=false,
+  onPress
  }: CircularTabBarButtonProps) {
   const theme = useTheme();
   const activeColor = theme.accent1?.get();
   const inactiveColor = "grey";
 
+
   return (
-    <Button
-      borderRadius={50}
+    <TouchableOpacity
       style={[styles.container, { backgroundColor: active ? activeColor : inactiveColor }]}
+      onPress={() => {
+        if (onPress) onPress();
+      }}
     >
       <View style={styles.iconWrapper}>{children}</View>
-    </Button>
+    </TouchableOpacity>
   );
 }
 
@@ -33,7 +37,7 @@ const styles = StyleSheet.create({
     position: 'absolute',
     bottom: 15,
     height: 60,
-    borderRadius: 30,
+    borderRadius: 50,
     width: 60,
     justifyContent: 'center',
     alignItems: 'center',
