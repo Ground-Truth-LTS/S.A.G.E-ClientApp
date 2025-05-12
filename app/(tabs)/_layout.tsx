@@ -1,6 +1,6 @@
 // React imports
 import { Tabs, Slot } from 'expo-router';
-import React from 'react';
+import React, { useState, useCallback } from 'react';
 import { Platform } from 'react-native';
 
 // Components imports
@@ -19,14 +19,32 @@ import {
         Square,
  } from '@tamagui/lucide-icons';
 
+ import { 
+  startESP32Logging,
+  stopESP32Logging
+} from '@/utils/esp_http_request';
+
 
 
 export default function TabLayout() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
   const { selectionMode, selectedLogs } = useSelectionMode();
+    const [isRecording, setIsRecording] = useState(false);
   // TODO: Add Alert when booting for the first time to show the instructions, you can use the Dialog Sheet from the System or using the React Native Alert Component, try do it as close as possible to the Figma model
-
+  const handleRecordPress = useCallback(async () => {
+    try {
+      if (!isRecording) {
+        await startESP32Logging();
+      } else {
+        await stopESP32Logging();
+      }
+      setIsRecording(r => !r);
+    } catch (err) {
+      console.error(err);
+      // optionally show an Alert here
+    }
+  }, [isRecording]);
   return (
     <Tabs
     screenOptions={{
@@ -74,24 +92,25 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="new-log"
-        listeners={{
-          tabPress: (e) => {
-            // Prevent default navigation
-            e.preventDefault();
-          },
-        }}
+        // prevent normal navigation:
+        listeners={{ tabPress: e => e.preventDefault() }}
         options={{
           title: '',
-          tabBarButton: (props) => (
-            <CircularTabBarButton {...props}>
-              {/*If not recording circle */}
-              <Circle fill="white" size={24} color="white" />
-              {/*If recording square */}
-              {/*<Square fill="white" size={24} color="white" />*/}
-              {/**TODO: Add timer of the amount timestamp recording for the device, that will probably go on the Navbar */}
-            </CircularTabBarButton>
-            
-          ),
+          tabBarButton: (props) => {
+            // strip out the default onPress so we can override it
+            const { onPress, ...rest } = props;
+            return (
+              <CircularTabBarButton
+                {...rest}
+                onPress={handleRecordPress}
+              >
+                {isRecording
+                  ? <Square fill="white" size={24} />
+                  : <Circle fill="white" size={24} />
+                }
+              </CircularTabBarButton>
+            );
+          },
         }}
       />
 
