@@ -1,6 +1,6 @@
 // React imports
 import { Tabs, Slot } from 'expo-router';
-import React from 'react';
+import React, { useState, useCallback, useEffect, useRef } from 'react';
 import { Platform } from 'react-native';
 
 // Components imports
@@ -19,13 +19,81 @@ import {
         Square,
  } from '@tamagui/lucide-icons';
 
+ import { 
+   checkESP32Connection,
+  startESP32Logging,
+  stopESP32Logging
+} from '@/utils/esp_http_request';
+
 
 
 export default function TabLayout() {
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
+  const [isConnected, setIsConnected] = useState(false);
+  const [elapsedTime, setElapsedTime] = useState(0);
+  const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { selectionMode, selectedLogs } = useSelectionMode();
-  // TODO: Add Alert when booting for the first time to show the instructions, you can use the Dialog Sheet from the System or using the React Native Alert Component, try do it as close as possible to the Figma model
+  const [isRecording, setIsRecording] = useState(false);
+
+
+  useEffect(() => {
+    const fetchConnectionStatus = async () => {
+      const connectionStatus = await checkESP32Connection();
+      setIsConnected(connectionStatus);
+    };
+    fetchConnectionStatus();
+
+    if (isRecording) {
+      // Reset timer when starting recording
+      setElapsedTime(0);
+      
+      // Start timer
+    timerRef.current = setInterval(() => {
+        setElapsedTime(prev => prev + 1);
+      }, 1000) as unknown as NodeJS.Timeout;
+    } else {
+      // Clear timer when stopping recording
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+        timerRef.current = null;
+      }
+    }
+    return () => {
+      if (timerRef.current) {
+        clearInterval(timerRef.current);
+      }
+    };
+
+  }, [isRecording]);
+
+
+  const formatTime = (seconds: number) => {
+    const mins = Math.floor(seconds / 60).toString().padStart(2, '0');
+    const secs = (seconds % 60).toString().padStart(2, '0');
+    return `${mins}:${secs}`;
+  };
+
+  const handleRecordPress = useCallback(async () => {
+    if (isConnected) {
+      try {
+        // if (!isRecording) {
+        //   // Start recording
+        //   console.log('Starting recording...');
+        //   await startESP32Logging();
+        // } else {
+        //   // Stop recording
+        //   console.log('Stopping recording...');
+        //   await stopESP32Logging();
+        // }
+        // Toggle recording state AFTER the API calls
+        setIsRecording(prev => !prev);
+        console.log('Recording state changed:', !isRecording);
+      } catch (error) {
+        console.error('Recording operation failed:', error);
+      }
+    }
+  }, [isConnected, isRecording]);
 
   return (
     <Tabs
@@ -37,7 +105,6 @@ export default function TabLayout() {
       tabBarBackground: TabBarBackground,
       tabBarStyle: selectionMode ? { display: 'none' } : Platform.select({
         ios: {
-          // Use a transparent background on iOS to show the blur effect
           position: 'absolute', 
           shadowColor: '#000',
           shadowOffset: { width: 0, height: 4 },
@@ -74,24 +141,43 @@ export default function TabLayout() {
 
       <Tabs.Screen
         name="new-log"
-        listeners={{
-          tabPress: (e) => {
-            // Prevent default navigation
-            e.preventDefault();
-          },
-        }}
+        // prevent normal navigation:
+        listeners={{ tabPress: e => e.preventDefault() }}
         options={{
           title: '',
-          tabBarButton: (props) => (
-            <CircularTabBarButton {...props}>
-              {/*If not recording circle */}
-              <Circle fill="white" size={24} color="white" />
-              {/*If recording square */}
-              {/*<Square fill="white" size={24} color="white" />*/}
-              {/**TODO: Add timer of the amount timestamp recording for the device, that will probably go on the Navbar */}
-            </CircularTabBarButton>
-            
-          ),
+          tabBarButton: () => {
+            return (
+            <>
+          <CircularTabBarButton
+            active={isConnected} 
+            onPress={handleRecordPress}
+          >
+            {isRecording
+              ? <Square fill="white" size={24} color="white"/>
+              : <Circle fill="white" size={24} color="white"/>
+            }
+          </CircularTabBarButton>
+          
+          {isRecording && (
+            <View style={{
+              position: 'absolute',
+              bottom: Platform.OS === 'ios' ? 95 : -10,
+              alignSelf: 'center',
+              zIndex: 100,
+            }}>
+              <Text style={{
+                color: '$color1',
+                fontWeight: 'bold',
+                fontSize: 12,
+                textAlign: 'center',
+              }}>
+                {formatTime(elapsedTime)}
+              </Text>
+            </View>
+          )}
+        </>
+      );
+          },
         }}
       />
 

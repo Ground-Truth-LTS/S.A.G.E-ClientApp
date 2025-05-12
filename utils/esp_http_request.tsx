@@ -5,7 +5,41 @@ import * as Location from 'expo-location';
 
 // NetInfo library doc: https://github.com/react-native-netinfo/react-native-netinfo
 
-async function checkESP32Connection(): Promise<boolean> {
+const BASE_URL = 'http://192.168.4.1';
+
+export async function startESP32Logging(): Promise<any> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const resp = await fetch(`${BASE_URL}/start`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function stopESP32Logging(): Promise<any> {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 5000);
+  try {
+    const resp = await fetch(`${BASE_URL}/end`, {
+      method: 'GET',
+      headers: { Accept: 'application/json' },
+      signal: controller.signal,
+    });
+    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
+    return await resp.json();
+  } finally {
+    clearTimeout(timeoutId);
+  }
+}
+
+export async function checkESP32Connection(): Promise<boolean> {
   try {
 
       const { status } = await Location.requestForegroundPermissionsAsync();
