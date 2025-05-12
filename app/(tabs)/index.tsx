@@ -120,7 +120,7 @@ export default function LogsList() {
         style={{ backgroundColor: isDarkMode ? "$color1" : "white" }}
       >
         <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
-          backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+          backgroundColor="rgba(0, 0, 0, 1)" // Semi-transparent background
         >
           <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 225, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
             
@@ -489,6 +489,7 @@ export default function LogsList() {
     
           <Tabs.Content value="phone" backgroundColor="$color1" borderColor="$color1" height={"100%"}>
             <ScrollView
+            
               contentContainerStyle={{
                 paddingBottom: 120, // Add extra padding at the bottom for the tab bar
               }}>

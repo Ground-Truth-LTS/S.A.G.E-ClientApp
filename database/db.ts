@@ -3,36 +3,47 @@ import * as SQLite from 'expo-sqlite';
 
 // DB Creation
 export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
-
-  await db.execAsync(`PRAGMA foreign_keys = ON;`);
-  await db.execAsync(`
-    CREATE TABLE IF NOT EXISTS Device (
-      device_id INTEGER PRIMARY KEY AUTOINCREMENT,
-      device_name TEXT
-      );
-    `);
-  await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS Session (
-        session_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        timestamp_start TEXT,
-        timestamp_end TEXT,
-        location TEXT,
-        device_id INTEGER,
-        FOREIGN KEY (device_id) REFERENCES Device(device_id)
-      );
-    `)
-    await db.execAsync(`
-      CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
-        data_id INTEGER PRIMARY KEY AUTOINCREMENT,
-        session_id INTEGER,
-        nitrogen REAL,
-        phosphorus REAL,
-        potassium REAL,
-        pH REAL,
-        moisture REAL,
-        temperature REAL,
-        FOREIGN KEY (session_id) REFERENCES Session(session_id)
-      );`)
+  console.log("[DB] Creating empty database...");
+  try {
+    await db.withTransactionAsync(async () => {
+      console.log("[DB] Transaction started. Setting PRAGMA...");
+      await db.execAsync(`PRAGMA foreign_keys = ON;`);
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Device (
+          device_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          device_name TEXT
+        );
+      `);
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Session (
+          session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          timestamp_start TEXT,
+          timestamp_end TEXT,
+          location TEXT,
+          device_id INTEGER,
+          FOREIGN KEY (device_id) REFERENCES Device(device_id)
+        );
+      `);
+      console.log("[DB] Creating Processed_Sensor_Data table...");
+      await db.execAsync(`
+        CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
+          data_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_id INTEGER,
+          nitrogen REAL,
+          phosphorus REAL,
+          potassium REAL,
+          pH REAL,
+          moisture REAL,
+          temperature REAL,
+          FOREIGN KEY (session_id) REFERENCES Session(session_id)
+        );
+      `);
+    });
+    console.log("[DB] Schema creation transaction completed successfully.");
+  } catch (error) {
+    console.error("[DB] Error during schema creation transaction:", error);
+    throw error;
+  }
 }
 
 // Insert into Tables
