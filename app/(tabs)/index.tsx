@@ -23,7 +23,7 @@ import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 import { useESP32Data } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
 // Database queries
-import { getAllSession, updateSession } from '@/database/db';
+import { deleteMultipleSessions, getAllSession, updateSession } from '@/database/db';
 import { Session } from '@/models/session';
 
 const StyledTab = styled(Tabs.Tab, {
@@ -45,9 +45,11 @@ export default function LogsList() {
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [renameModalVisible, setRenameModalVisible] = useState(false);
+  const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
+  
   const [logToRename, setLogToRename] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
-  const [newSessionId, setNewSessionId] = useState<number>();
+  const [newSessionName, setNewSessionName] = useState<string>('');
   const { bottom } = useSafeAreaInsets();
   const {
     data,
@@ -75,9 +77,10 @@ export default function LogsList() {
           logData.timestamp_end,
           logData.location,
           logData.device_id,
-          logData.session_id
+          logData.session_id,
+          logData.session_name
         ));
-        
+
         setLogs(sessionInstances);
         //console.log("Loading logs from local database", logs, logsRequest, logsData);
       }catch (error) {
@@ -255,18 +258,7 @@ export default function LogsList() {
     };
 
     const handleDelete = () => {
-      // Logic to delete selected logs
-      // Remove selected logs from the logs array
-      const remainingLogs = logs.filter(log => !selectedLogs.includes(log));
-
-      // Update state
-      setLogs(remainingLogs);
-
-      // Clear the selection
-      toggleLogSelection([]);
-
-      // Exit selection mode if you’d like
-      toggleSelectionMode();
+      setDeleteConfirmVisible(true);
     };
 
     const handleDownload = () => {
@@ -282,7 +274,7 @@ export default function LogsList() {
         const sessionId = logToEdit.session_id;
         if(sessionId){
           setLogToRename(sessionId);
-          setNewSessionId(sessionId);
+          setNewSessionName(logToEdit.session_name);
         }
 
         setRenameModalVisible(true);
@@ -578,7 +570,7 @@ export default function LogsList() {
                         key={log.session_id ?? index}
                         hoverTheme
                         pressTheme
-                        title={`Log ${log.session_id ?? index + 1}`}
+                        title={log.session_name}
                         subTitle={log.timestamp_end ?? `Log ${index + 1} description`}
                         icon={ selectionMode ? (            
                           <Checkbox 
@@ -679,9 +671,9 @@ export default function LogsList() {
           >
             <Text style={{ fontSize: 18, marginBottom: 10 }}>Rename Log</Text>
             <TextInput
-              value={String(newSessionId)}
-              onChangeText={(text) => setNewSessionId(text ? parseInt(text, 10) : undefined)}
-              placeholder="Enter new session ID"
+              value={newSessionName}
+              onChangeText={(text) => setNewSessionName(text)}
+              placeholder="Enter new session name"
               style={{
                 borderWidth: 1,
                 borderColor: isDarkMode ? colorScheme.color5?.get() : 'gray',
@@ -720,7 +712,7 @@ export default function LogsList() {
                 try {
                   // Update in the database
                   await updateSession(db, logToRename, {
-                    session_id: newSessionId
+                    session_name: newSessionName
                   });
                   
                   // Update in local state
@@ -731,8 +723,9 @@ export default function LogsList() {
                     log.timestamp_end,
                     log.location,
                     log.device_id,
-                    newSessionId 
-                  ); 
+                    log.session_id,
+                    newSessionName
+                  );
                 }
                   return log;
                 });
@@ -754,6 +747,43 @@ export default function LogsList() {
           </View>
         </View>
       </Modal>
+
+      <DeleteConfirmationModal
+        visible={deleteConfirmVisible}
+        onClose={() => setDeleteConfirmVisible(false)}
+        isDarkMode={isDarkMode}
+        setSortModalVisible={setSortModalVisible}
+        setDeleteConfirmVisible={setDeleteConfirmVisible}
+        onConfirm={async () => {
+          try {
+          
+            const sessionIds = selectedLogs.map(log => log.session_id);
+            
+        
+            const result = await deleteMultipleSessions(db, sessionIds.filter((id): id is number => id !== null));
+            
+            // If successful, update the UI
+            if (result.success) {
+              // Remove deleted logs from the local state
+              const remainingLogs = logs.filter(log => !sessionIds.includes(log.session_id));
+              setLogs(remainingLogs);
+              
+              toggleSelectionMode();
+              setToastVisible(true);
+
+              console.log(`Successfully deleted ${result.sessionsDeleted} sessions and ${result.sensorReadingsDeleted} readings`);
+            }
+          } catch (error) {
+            console.error('Failed to delete sessions:', error);
+          } finally {
+            // Always close the modal
+            setDeleteConfirmVisible(false);
+          }
+
+
+        }}
+      />
+
       {/*<ToastViewport></ToastViewport>*/}      
       {toastVisible && (
       <View
@@ -764,10 +794,10 @@ export default function LogsList() {
           transform: [{ translateX: -150 }],
           width: 300,
           padding: 10,
-          backgroundColor: isDarkMode ? colorScheme.color3?.get() : 'green',
           borderRadius: 10,
           alignItems: 'center',
         }}
+        backgroundColor={isDarkMode ? "$color3" : '$accent1'}
       >
         <Text style={{ color: 'white', fontSize: 16 }}>Action completed successfully!</Text>
       </View>
@@ -971,6 +1001,87 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
   </Modal>
   );
 }
+
+interface DeleteConfirmationModalProps {
+  visible: boolean;
+  onClose: () => void;
+  isDarkMode: boolean;
+  setSortModalVisible: (visible: boolean) => void;
+  setDeleteConfirmVisible: (visible: boolean) => void;
+  onConfirm: () => void; // Add this new prop
+}
+
+const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
+  visible,
+  onClose,
+  isDarkMode,
+  setSortModalVisible,
+  setDeleteConfirmVisible,
+  onConfirm, // Add this parameter
+}) => {
+  return (
+ <Modal
+    visible={visible}
+    transparent={true}
+    animationType="slide"
+    onRequestClose={onClose}
+    style={{ backgroundColor: isDarkMode ? "$color1" : "white" }}
+  >
+    <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
+      backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
+    >
+      <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  
+        style={{ 
+          width: 250, 
+          backgroundColor: isDarkMode ? "$color1" : "white", 
+          borderRadius: 10 }}>
+        
+        <Text padding={20} fontSize={18}>Do you want to <Text fontWeight={600}>delete</Text> the selected items?</Text>
+        <View style={{ alignItems: 'flex-end' }} flexDirection='row'>        
+          <Button 
+           
+            padding={20} 
+            width={"50%"}
+            height={65}
+            backgroundColor={ isDarkMode ? "$color1" : "white"} 
+            borderStartEndRadius={10}
+            borderColor="$accent2"
+            borderTopEndRadius={0}
+            borderTopStartRadius={0}
+            borderEndEndRadius={0}
+            borderWidth={0}
+            borderTopWidth={1}
+            pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
+            onPress={() => setDeleteConfirmVisible(false)}
+            >
+              <Text fontSize={18} color="$accent2">Cancel</Text>
+          </Button>
+
+          <Button 
+            padding={20} 
+            width={"50%"}
+            height={65}
+            backgroundColor="$accent2"
+            borderTopEndRadius={0}
+            borderEndStartRadius={0}
+            borderStartEndRadius={0}
+            borderStartStartRadius={0}
+            borderEndEndRadius={10}
+            pressStyle={{ backgroundColor: "$accent1", borderWidth: 0 }}
+            onPress={() => {
+              setDeleteConfirmVisible(false);
+              onConfirm(); // Call the onConfirm callback to perform the deletion
+            }}
+            >
+              <Text fontSize={18} color="white">Confirm</Text>
+          </Button>
+        </View>
+      </View>
+    </View>
+  </Modal>
+  );
+}
+
 // TODO Complete and test after database is working
 // const DisplayToast: React.FC = () => {
 //   const currentToast = useToastState()

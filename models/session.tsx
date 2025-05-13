@@ -8,6 +8,7 @@ export class Session {
   timestamp_end: string;
   location: string;
   device_id: number;
+  session_name: string;
 
   /**
    * Create a new Session instance
@@ -17,19 +18,22 @@ export class Session {
    * @param location Location where data was collected
    * @param device_id ID of the device used for data collection
    * @param session_id Optional ID (set automatically by DB if not provided)
+   * @param session_name Name of the session
    */
   constructor(
     timestamp_start: string,
     timestamp_end: string,
     location: string,
     device_id: number,
-    session_id: number | null = null
+    session_id: number | null = null,
+    session_name: string,
   ) {
     this.timestamp_start = timestamp_start;
     this.timestamp_end = timestamp_end;
     this.location = location;
     this.device_id = device_id;
     this.session_id = session_id;
+    this.session_name = session_name;
   }
 
   /**

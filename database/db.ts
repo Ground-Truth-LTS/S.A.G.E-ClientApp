@@ -85,7 +85,7 @@ export const insertSession = async (
     const sessionId = result.lastInsertRowId;
     await db.runAsync(
       'UPDATE Session SET session_name = ? WHERE session_id = ?',
-      [`Session ${sessionId}`, sessionId]
+      [`Log ${sessionId}`, sessionId]
     );
     
     return result;
@@ -132,7 +132,8 @@ export const updateSession = async (
     timestamp_start?: string,
     timestamp_end?: string,
     location?: string,
-    device_id?: number
+    device_id?: number,
+    session_name?: string
   }
 ) => {
   try {
@@ -161,6 +162,10 @@ export const updateSession = async (
     if (updates.device_id !== undefined) {
       setClauses.push('device_id = ?');
       params.push(updates.device_id);
+    }
+    if (updates.session_name !== undefined) {
+      setClauses.push('session_name = ?');
+      params.push(updates.session_name);
     }
 
     // If no fields to update, return early
@@ -334,6 +339,96 @@ export const getCompleteSession = async (db: SQLite.SQLiteDatabase, sessionId: n
 }
 
 
+// Delete Session (log)
+export const deleteSession = async (db: SQLite.SQLiteDatabase, sessionId: number) => {
+  try {
+    await db.execAsync('BEGIN TRANSACTION');
+    
+    //delete related sensor data to maintain referential integrity
+    const sensorDeleteResult = await db.runAsync(
+      'DELETE FROM Processed_Sensor_Data WHERE session_id = ?', 
+      [sessionId]
+    );
+    console.log(`Deleted ${sensorDeleteResult.changes} sensor readings for session ${sessionId}`);
+    
+    // Then delete the session itself
+    const sessionDeleteResult = await db.runAsync(
+      'DELETE FROM Session WHERE session_id = ?', 
+      [sessionId]
+    );
+    
+    // Commit the transaction
+    await db.execAsync('COMMIT');
+    
+    console.log(`Session ${sessionId} deleted, changes: ${sessionDeleteResult.changes}`);
+    return {
+      success: true,
+      sessionDeleted: sessionDeleteResult.changes > 0,
+      sensorReadingsDeleted: sensorDeleteResult.changes,
+      changes: sessionDeleteResult.changes + sensorDeleteResult.changes
+    };
+  } catch (error) {
+    // Roll back on error
+    await db.execAsync('ROLLBACK');
+    console.error(`Error deleting session ${sessionId}:`, error);
+    throw error;
+  }
+};
+
+/**
+ * Delete multiple sessions by their IDs
+ * @param db SQLite database instance
+ * @param sessionIds Array of session IDs to delete
+ * @returns Promise resolving to a result object with total changes count
+ */
+export const deleteMultipleSessions = async (db: SQLite.SQLiteDatabase, sessionIds: number[]) => {
+  try {
+    if (!sessionIds || sessionIds.length === 0) {
+      return { success: true, changes: 0 };
+    }
+    
+    // Start a transaction
+    await db.execAsync('BEGIN TRANSACTION');
+    
+    let totalSensorReadingsDeleted = 0;
+    let totalSessionsDeleted = 0;
+    
+    // Process each session ID
+    for (const sessionId of sessionIds) {
+      // Delete related sensor data
+      const sensorDeleteResult = await db.runAsync(
+        'DELETE FROM Processed_Sensor_Data WHERE session_id = ?', 
+        [sessionId]
+      );
+      totalSensorReadingsDeleted += sensorDeleteResult.changes;
+      
+      // Delete the session
+      const sessionDeleteResult = await db.runAsync(
+        'DELETE FROM Session WHERE session_id = ?', 
+        [sessionId]
+      );
+      totalSessionsDeleted += sessionDeleteResult.changes;
+    }
+    
+    // Commit the transaction
+    await db.execAsync('COMMIT');
+    
+    console.log(`Deleted ${totalSessionsDeleted} sessions and ${totalSensorReadingsDeleted} sensor readings`);
+    return {
+      success: true,
+      sessionsDeleted: totalSessionsDeleted,
+      sensorReadingsDeleted: totalSensorReadingsDeleted,
+      changes: totalSessionsDeleted + totalSensorReadingsDeleted
+    };
+  } catch (error) {
+    // Roll back on error
+    await db.execAsync('ROLLBACK');
+    console.error('Error deleting multiple sessions:', error);
+    throw error;
+  }
+};
+
+
 // Delete from Tables
 export const deleteAllFromDevice = async (db: SQLite.SQLiteDatabase) => {
 
@@ -404,13 +499,13 @@ export const insertCSVData = async(db: SQLite.SQLiteDatabase) => {
     const endTimestamp = new Date(1747018800 * 1000).toISOString();
     
     // Insert the session
-    const result = await db.runAsync(`
-      INSERT INTO Session (
-      timestamp_start,
-      timestamp_end,
-      location,
-      device_id) VALUES (?, ?, ?, ?)`, 
-      startTimestamp, endTimestamp, "CSV Test Location", 1);
+    const result = await insertSession(
+      db, 
+      startTimestamp, 
+      endTimestamp, 
+      "CSV Test Location", 
+      1
+    );
     
     const sessionId = result.lastInsertRowId;
     console.log(`Created new session with ID: ${sessionId}`);
