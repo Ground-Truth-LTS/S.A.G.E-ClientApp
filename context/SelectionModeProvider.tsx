@@ -1,19 +1,20 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
+import { Session } from '@/models/session';
 
 interface SelectionModeContextType {
   selectionMode: boolean;
-  selectedLogs: string[];
+  selectedLogs: Session[];
   setSelectionMode: (value: boolean) => void;
-  setSelectedLogs: React.Dispatch<React.SetStateAction<string[]>>;
+  setSelectedLogs: React.Dispatch<React.SetStateAction<Session[]>>;
   toggleSelectionMode: () => void;
-  toggleLogSelection: (selection: string[]) => void;
+  toggleLogSelection: (selection: Session[]) => void;
 }
 
 const SelectionModeContext = createContext<SelectionModeContextType | undefined>(undefined);
 
 export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedLogs, setSelectedLogs] = useState<string[]>([]);
+  const [selectedLogs, setSelectedLogs] = useState<Session[]>([]);
 
   const toggleSelectionMode = () => {
     setSelectionMode(!selectionMode);
@@ -22,7 +23,7 @@ export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ childre
     }
   };
 
-  const toggleLogSelection = (selection: string[]) => {
+  const toggleLogSelection = (selection: Session[]) => {
     setSelectedLogs(selection);
   };
 

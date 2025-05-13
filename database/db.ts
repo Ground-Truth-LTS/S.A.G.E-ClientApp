@@ -17,6 +17,7 @@ export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
       await db.execAsync(`
         CREATE TABLE IF NOT EXISTS Session (
           session_id INTEGER PRIMARY KEY AUTOINCREMENT,
+          session_name TEXT,
           timestamp_start TEXT,
           timestamp_end TEXT,
           location TEXT,
@@ -53,15 +54,42 @@ export const insertDevice = async (db : SQLite.SQLiteDatabase, device_name: stri
   //console.log(result.lastInsertRowId,result.changes);
 }
 
-export const insertSession = async (db : SQLite.SQLiteDatabase, timestamp_start : string,
-  timestamp_end : string, location : string, device_id  : number) => {
-  const result = await db.runAsync(`
-    INSERT INTO Session (
-    timestamp_start,
-    timestamp_end,
-    location,
-    device_id ) VALUES (?,?,?,?)`, timestamp_start, timestamp_end, location, device_id);
-  //console.log(result.lastInsertRowId,result.changes);
+export const insertSession = async (
+  db: SQLite.SQLiteDatabase,
+  timestamp_start: string,
+  timestamp_end: string,
+  location: string,
+  device_id: number,
+  session_name?: string
+) => {
+  if (session_name) {
+    const result = await db.runAsync(`
+      INSERT INTO Session (
+        session_name,
+        timestamp_start,
+        timestamp_end,
+        location,
+        device_id) VALUES (?,?,?,?,?)`, 
+      session_name, timestamp_start, timestamp_end, location, device_id);
+    return result;
+  } else { // If session_name is not provided, assign id as name
+    const result = await db.runAsync(`
+      INSERT INTO Session (
+        timestamp_start,
+        timestamp_end,
+        location,
+        device_id) VALUES (?,?,?,?)`, 
+      timestamp_start, timestamp_end, location, device_id);
+    
+    // Then update with session_id as the name
+    const sessionId = result.lastInsertRowId;
+    await db.runAsync(
+      'UPDATE Session SET session_name = ? WHERE session_id = ?',
+      [`Session ${sessionId}`, sessionId]
+    );
+    
+    return result;
+  }
 }
 
 export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : number,
@@ -87,6 +115,72 @@ export const getDevices = async (db : SQLite.SQLiteDatabase) => {
 export const getAllSession = async (db : SQLite.SQLiteDatabase) => {
   const allRows = await db.getAllAsync('SELECT * FROM Session');
   return JSON.stringify(allRows);
+}
+
+/**
+ * Update an existing session in the database
+ * @param db SQLite database instance
+ * @param sessionId The current session ID to update
+ * @param updates Object containing the fields to update
+ * @returns Promise resolving to a result object with changes count
+ */
+export const updateSession = async (
+  db: SQLite.SQLiteDatabase, 
+  sessionId: number,
+  updates: {
+    session_id?: string | number,
+    timestamp_start?: string,
+    timestamp_end?: string,
+    location?: string,
+    device_id?: number
+  }
+) => {
+  try {
+    // Start building the SQL query
+    let sql = 'UPDATE Session SET ';
+    const params: any[] = [];
+    const setClauses: string[] = [];
+
+    // Add each field that needs updating
+    if (updates.session_id !== undefined) {
+      setClauses.push('session_id = ?');
+      params.push(updates.session_id);
+    }
+    if (updates.timestamp_start !== undefined) {
+      setClauses.push('timestamp_start = ?');
+      params.push(updates.timestamp_start);
+    }
+    if (updates.timestamp_end !== undefined) {
+      setClauses.push('timestamp_end = ?');
+      params.push(updates.timestamp_end);
+    }
+    if (updates.location !== undefined) {
+      setClauses.push('location = ?');
+      params.push(updates.location);
+    }
+    if (updates.device_id !== undefined) {
+      setClauses.push('device_id = ?');
+      params.push(updates.device_id);
+    }
+
+    // If no fields to update, return early
+    if (setClauses.length === 0) {
+      console.log('No fields to update for session:', sessionId);
+      return { changes: 0 };
+    }
+
+    // Complete the SQL query
+    sql += setClauses.join(', ') + ' WHERE session_id = ?';
+    params.push(sessionId);
+
+    // Execute the query
+    const result = await db.runAsync(sql, params);
+    console.log(`Updated session ${sessionId}, changes: ${result.changes}`);
+    return result;
+  } catch (error) {
+    console.error(`Error updating session ${sessionId}:`, error);
+    throw error;
+  }
 }
 
 export const getSessionByTimeframe = async (db : SQLite.SQLiteDatabase,

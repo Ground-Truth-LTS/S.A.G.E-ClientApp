@@ -98,8 +98,8 @@ useEffect(() => {
 
       setConnectionStatus('connected');
     } catch (err) {
-      console.error('Error fetching data from ESP32:', err);
-      setError(err);
+      //console.error('Error fetching data from ESP32:', err);
+      //setError(err instanceof Error ? { message: err.message, code: 'UNKNOWN_ERROR' } : { message: 'An unknown error occurred', code: 'UNKNOWN_ERROR' });
       setData([]);
       setConnectionStatus('error');
     } finally {

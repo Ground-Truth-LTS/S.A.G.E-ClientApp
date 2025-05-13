@@ -23,7 +23,8 @@ import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 import { useESP32Data } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
 // Database queries
-import { getAllSession } from '@/database/db';
+import { getAllSession, updateSession } from '@/database/db';
+import { Session } from '@/models/session';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -40,13 +41,13 @@ const StyledTab = styled(Tabs.Tab, {
 export default function LogsList() {
   const db = useSQLiteContext();
   const [loadingLogs, setLoadingLogs] = useState(false);
-  const [logs, setLogs] = useState([]);
+  const [logs, setLogs] = useState<Session[]>([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
   const [renameModalVisible, setRenameModalVisible] = useState(false);
-  const [logToRename, setLogToRename] = useState<any>(null);
+  const [logToRename, setLogToRename] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
-  const [newSessionId, setNewSessionId] = useState("");
+  const [newSessionId, setNewSessionId] = useState<number>();
   const { bottom } = useSafeAreaInsets();
   const {
     data,
@@ -61,14 +62,24 @@ export default function LogsList() {
     return () => clearTimeout(timer); // Cleanup the timer
   }
 }, [toastVisible]);
-
   useEffect(() => {
     // Logs is equivalent
     async function loadLogs(){
       try {
         const logsRequest = await getAllSession(db);
-        setLogs(JSON.parse(logsRequest));
-        //console.log("Loading logs from local database", logs, logsRequest, JSON.parse(logsRequest));
+        const logsData = JSON.parse(logsRequest);
+        
+        // Convert each plain object to a Session instance
+        const sessionInstances = logsData.map((logData: any) => new Session(
+          logData.timestamp_start,
+          logData.timestamp_end,
+          logData.location,
+          logData.device_id,
+          logData.session_id
+        ));
+        
+        setLogs(sessionInstances);
+        //console.log("Loading logs from local database", logs, logsRequest, logsData);
       }catch (error) {
         console.error("Error loading logs: ", error);
 
@@ -108,8 +119,9 @@ export default function LogsList() {
     }
   }
 
-  const navigateToLog = (id: string) => {
-    navigation.navigate('log/[id]', { id });
+  const navigateToLog = (id: string | number) => {
+    const stringId = String(id);
+    navigation.navigate('log/[id]', { id: stringId });
   }
   const sortedDeviceData = useMemo(() => {
     if (!data) return [];
@@ -260,16 +272,21 @@ export default function LogsList() {
     const handleDownload = () => {
       // Logic to download selected logs
       setToastVisible(true);
-    };
-
+    
+    };    
+    
     const handleRename = () => {
-      // Logic to rename selected log
       if (selectedLogs.length === 1) {
-      const logToEdit = selectedLogs[0];
-      setLogToRename(logToEdit); // Set the log to rename
-      setNewSessionId(logToEdit.session_id || ""); // Pre-fill the modal with the current session_id
-      setRenameModalVisible(true); // Open the rename modal
-    }
+        const logToEdit = selectedLogs[0];
+        // Extract the session_id from the Session object
+        const sessionId = logToEdit.session_id;
+        if(sessionId){
+          setLogToRename(sessionId);
+          setNewSessionId(sessionId);
+        }
+
+        setRenameModalVisible(true);
+      }
     };
 
     const allSelected = logs.length > 0 && selectedLogs.length === logs.length;
@@ -586,7 +603,7 @@ export default function LogsList() {
                             <Checkbox.Indicator>
                               <CheckIcon color="white" />
                             </Checkbox.Indicator>
-                          </Checkbox>) : FileText}
+                          </Checkbox>) : <FileText></FileText>}
                         iconAfter={<ChevronRight color="$color9"></ChevronRight>}
                         color="$color7"
                         scaleIcon={1.7}
@@ -596,11 +613,10 @@ export default function LogsList() {
                         borderBottomWidth={1}
                         borderColor="$color6"
                         backgroundColor="$color1"
-                        onPress={() => 
-                          {
-                            if(!selectionMode)
-                              navigateToLog(log.session_id)
-                          }}
+                        onPress={() => {
+                          if (!selectionMode)
+                            navigateToLog(log.session_id)
+                        }}
                       />
                     )})
                   ) : (
@@ -663,8 +679,8 @@ export default function LogsList() {
           >
             <Text style={{ fontSize: 18, marginBottom: 10 }}>Rename Log</Text>
             <TextInput
-              value={newSessionId}
-              onChangeText={setNewSessionId}
+              value={String(newSessionId)}
+              onChangeText={(text) => setNewSessionId(text ? parseInt(text, 10) : undefined)}
               placeholder="Enter new session ID"
               style={{
                 borderWidth: 1,
@@ -699,43 +715,63 @@ export default function LogsList() {
             borderStartEndRadius={0}
             borderStartStartRadius={0}
             borderEndEndRadius={10}
-            pressStyle={{ backgroundColor: "$color1", borderWidth: 0 }}
-                onPress={() => {
-                  if (logToRename) {
-                    const updatedLogs = logs.map((log) =>
-                      log === logToRename ? { ...log, session_id: newSessionId } : log
-                    );
-                    setLogs(updatedLogs); // Update the logs state
-                    setRenameModalVisible(false); // Close the modal
-                    toggleLogSelection([]); // Clear selection
-                  }
-                }}
-                backgroundColor={colorScheme.accent2?.get()}
-              >
+            pressStyle={{ backgroundColor: "$color1", borderWidth: 0 }}            onPress={async () => {
+              if (logToRename) {
+                try {
+                  // Update in the database
+                  await updateSession(db, logToRename, {
+                    session_id: newSessionId
+                  });
+                  
+                  // Update in local state
+                const updatedLogs = logs.map((log) => {
+                if (log.session_id === logToRename) {
+                  return new Session(
+                    log.timestamp_start,
+                    log.timestamp_end,
+                    log.location,
+                    log.device_id,
+                    newSessionId 
+                  ); 
+                }
+                  return log;
+                });
+
+                  setLogs(updatedLogs); // Update the logs state
+                  setRenameModalVisible(false); // Close the modal
+                  toggleLogSelection([]); // Clear selection
+                  setToastVisible(true); // Show success message
+                } catch (error) {
+                  console.error("Error updating session:", error);
+                  // Could show an error toast here
+                }
+              }
+            }}
+          >
                 <Text fontSize={18} color="white">Save</Text>
               </Button>
             </XStack>
           </View>
         </View>
       </Modal>
-      {/*<ToastViewport></ToastViewport>*/}
+      {/*<ToastViewport></ToastViewport>*/}      
       {toastVisible && (
-  <View
-    style={{
-      position: 'absolute',
-      bottom: 125,
-      left: '50%',
-      transform: [{ translateX: -150 }],
-      width: 300,
-      padding: 10,
-      backgroundColor: isDarkMode ? colorScheme.color3?.get() : 'green',
-      borderRadius: 10,
-      alignItems: 'center',
-    }}
-  >
-    <Text style={{ color: 'white', fontSize: 16 }}>Successfully Downloaded!</Text>
-  </View>
-)}
+      <View
+        style={{
+          position: 'absolute',
+          bottom: 125,
+          left: '50%',
+          transform: [{ translateX: -150 }],
+          width: 300,
+          padding: 10,
+          backgroundColor: isDarkMode ? colorScheme.color3?.get() : 'green',
+          borderRadius: 10,
+          alignItems: 'center',
+        }}
+      >
+        <Text style={{ color: 'white', fontSize: 16 }}>Action completed successfully!</Text>
+      </View>
+    )}
     </View>
   );
 }
@@ -819,9 +855,7 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
             pressTheme
             title={fileName}
             subTitle={fileDate}
-            icon={FileText}
-            iconAfter={
-              selectionMode ? (            
+            icon={ selectionMode ? (            
                 <Checkbox 
                   id={`checkbox-${index}`}
                   size="$xl3"
@@ -834,9 +868,9 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
                     <CheckIcon color="$color9" />
                   </Checkbox.Indicator>
                 </Checkbox>
-              ) : (
-                <Download color="$color9" />
-              )
+              ) : <FileText></FileText>}
+            iconAfter={
+              <Download color="$color9" />
             }
             color="$color7"
             scaleIcon={1.7}
