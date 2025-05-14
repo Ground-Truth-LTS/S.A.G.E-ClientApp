@@ -1,4 +1,4 @@
-package com.anonymous.sageclientapp
+package com.groundtruthlts.sageclientapp
 import com.zoontek.rnbootsplash.RNBootSplash
 
 import android.os.Build

@@ -26,8 +26,7 @@ export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
         );
       `);
       console.log("[DB] Creating Processed_Sensor_Data table...");
-      await db.execAsync(`
-        CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
+      await db.execAsync(`        CREATE TABLE IF NOT EXISTS Processed_Sensor_Data (
           data_id INTEGER PRIMARY KEY AUTOINCREMENT,
           session_id INTEGER,
           nitrogen REAL,
@@ -35,7 +34,9 @@ export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
           potassium REAL,
           pH REAL,
           moisture REAL,
-          temperature REAL,
+          humidity REAL,
+          soil_temperature REAL,
+          air_temperature REAL,
           FOREIGN KEY (session_id) REFERENCES Session(session_id)
         );
       `);
@@ -93,7 +94,7 @@ export const insertSession = async (
 }
 
 export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : number,
-   nitrogen : number, phosphorus : number, potassium : number, pH : number, moisture : number, temperature : number) => {
+   nitrogen : number, phosphorus : number, potassium : number, pH : number, moisture : number, humidity : number, soil_temperature : number, air_temperature : number) => {
   const result = await db.runAsync(`INSERT INTO Processed_Sensor_Data (
         session_id,
         nitrogen,
@@ -101,7 +102,9 @@ export const insertSensorData = async (db : SQLite.SQLiteDatabase, session_id : 
         potassium,
         pH,
         moisture,
-        temperature) VALUES (?,?,?,?,?,?,?)`, session_id, nitrogen, phosphorus, potassium, pH, moisture, temperature);
+        humidity,
+        soil_temperature,
+        air_temperature) VALUES (?,?,?,?,?,?,?,?,?)`, session_id, nitrogen, phosphorus, potassium, pH, moisture, humidity, soil_temperature, air_temperature);
   //(result.lastInsertRowId,result.changes);
 }
 
@@ -219,8 +222,7 @@ export const getSensorDataBySessionId = async (db: SQLite.SQLiteDatabase, sessio
       console.log(`No session found with ID: ${sessionId}`);
       return JSON.stringify({ session: null, sensorData: [] });
     }
-    
-    // Then get all sensor readings for this session
+      // Then get all sensor readings for this session
     const sensorReadings = await db.getAllAsync(
       `SELECT 
         data_id, 
@@ -229,7 +231,9 @@ export const getSensorDataBySessionId = async (db: SQLite.SQLiteDatabase, sessio
         potassium, 
         pH, 
         moisture, 
-        temperature 
+        humidity,
+        soil_temperature,
+        air_temperature
        FROM Processed_Sensor_Data 
        WHERE session_id = ? 
        ORDER BY data_id ASC`, 
@@ -276,14 +280,22 @@ export const getCompleteSession = async (db: SQLite.SQLiteDatabase, sessionId: n
     }
     
     // Get sensor readings for this session
-    const sensorData = await db.getAllAsync(
+    const sensorData: Array<{
+      nitrogen: number;
+      phosphorus: number;
+      potassium: number;
+      pH: number;
+      moisture: number;
+      humidity: number;
+      soil_temperature: number;
+      air_temperature: number;
+    }> = await db.getAllAsync(
       `SELECT * FROM Processed_Sensor_Data 
        WHERE session_id = ? 
        ORDER BY data_id ASC`,
       [sessionId]
     );
-    
-    // Calculate some statistics for the session
+      // Calculate some statistics for the session
     const stats = {
       readingsCount: sensorData.length,
       averages: {
@@ -292,7 +304,9 @@ export const getCompleteSession = async (db: SQLite.SQLiteDatabase, sessionId: n
         potassium: 0,
         pH: 0,
         moisture: 0,
-        temperature: 0
+        humidity: 0,
+        soil_temperature: 0,
+        air_temperature: 0
       }
     };
     
@@ -303,15 +317,19 @@ export const getCompleteSession = async (db: SQLite.SQLiteDatabase, sessionId: n
       let totalPotassium = 0;
       let totalPH = 0;
       let totalMoisture = 0;
-      let totalTemperature = 0;
+      let totalHumidity = 0;
+      let totalSoilTemperature = 0;
+      let totalAirTemperature = 0;
       
-      for (const reading of sensorData as Array<{ nitrogen: number; phosphorus: number; potassium: number; pH: number; moisture: number; temperature: number }>) {
-        totalNitrogen += reading.nitrogen;
-        totalPhosphorus += reading.phosphorus;
-        totalPotassium += reading.potassium;
-        totalPH += reading.pH;
-        totalMoisture += reading.moisture;
-        totalTemperature += reading.temperature;
+      for (const reading of sensorData) {
+        totalNitrogen += reading.nitrogen || 0;
+        totalPhosphorus += reading.phosphorus || 0;
+        totalPotassium += reading.potassium || 0;
+        totalPH += reading.pH || 0;
+        totalMoisture += reading.moisture || 0;
+        totalHumidity += reading.humidity || 0;
+        totalSoilTemperature += reading.soil_temperature || 0;
+        totalAirTemperature += reading.air_temperature || 0;
       }
       
       stats.averages = {
@@ -320,7 +338,9 @@ export const getCompleteSession = async (db: SQLite.SQLiteDatabase, sessionId: n
         potassium: totalPotassium / sensorData.length,
         pH: totalPH / sensorData.length,
         moisture: totalMoisture / sensorData.length,
-        temperature: totalTemperature / sensorData.length
+        humidity: totalHumidity / sensorData.length,
+        soil_temperature: totalSoilTemperature / sensorData.length,
+        air_temperature: totalAirTemperature / sensorData.length
       };
     }
     
@@ -467,28 +487,6 @@ export const dropAllTables = async (db : SQLite.SQLiteDatabase) => {
 };
 
 
-export const insertDummyData = async(db: SQLite.SQLiteDatabase) => {
-  try {
-    // Insert a dummy device
-    await insertDevice(db, "Device A");
-
-    // Insert a dummy session for the device with device_id = 1
-    const startDate = "2023-04-01T10:00:00Z";
-    const endDate = "2023-04-01T11:00:00Z";
-    await insertSession(db, startDate, endDate, "New York", 1);
-
-    // Insert dummy sensor data for the session with session_id = 1
-    await insertSensorData(db, 1, 10.5, 15.2, 20.3, 7.4, 30.0, 25.5);
-    
-    // Insert CSV data as additional readings
-    await insertCSVData(db);
-    
-    console.log("All dummy data inserted successfully");
-  } catch (error) {
-    console.error("Error inserting dummy data:", error);
-  }
-}
-
 /**
  * Parse and insert CSV data into database
  */
@@ -581,20 +579,21 @@ export const insertCSVData = async(db: SQLite.SQLiteDatabase) => {
       const nitrogen = parseFloat(columns[6]);
       const phosphorus = parseFloat(columns[7]);
       const potassium = parseFloat(columns[8]);
-      
-      // Insert the sensor data
+        // Insert the sensor data
       await insertSensorData(
         db, 
         Number(sessionId), 
         nitrogen, 
         phosphorus, 
         potassium, 
-        pH, 
-        moisture, 
-        soilTemp // Using soil temperature as the temperature value
+        pH,
+        moisture,
+        humidity,
+        soilTemp,
+        airTemp
       );
     }
-    
+
     // Commit the transaction
     await db.execAsync('COMMIT');
     

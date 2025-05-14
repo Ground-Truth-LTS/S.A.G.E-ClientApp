@@ -8,12 +8,14 @@ import { insertSensorData, getSensorData, getSensorDataBySessionId } from '../da
 export class ProcessedSensorData {
   data_id: number | null;
   session_id: number;
+  humidity: number;
   nitrogen: number;
   phosphorus: number;
   potassium: number;
   pH: number;
   moisture: number;
-  temperature: number;
+  soil_temperature: number;
+  air_temperature: number;
 
   constructor(
     session_id: number,
@@ -22,7 +24,9 @@ export class ProcessedSensorData {
     potassium: number,
     pH: number,
     moisture: number,
-    temperature: number,
+    soil_temperature: number,
+    air_temperature: number,
+    humidity: number,
     data_id: number | null = null
   ) {
     this.session_id = session_id;
@@ -31,7 +35,9 @@ export class ProcessedSensorData {
     this.potassium = potassium;
     this.pH = pH;
     this.moisture = moisture;
-    this.temperature = temperature;
+    this.soil_temperature = soil_temperature;
+    this.air_temperature = air_temperature;
+    this.humidity = humidity;
     this.data_id = data_id;
   }
 
@@ -113,9 +119,9 @@ export class ProcessedSensorData {
     }
     
     // Temperature factor (optimal around 18-24°C for many plants)
-    if (this.temperature >= 18 && this.temperature <= 24) {
+    if (this.soil_temperature >= 18 && this.soil_temperature <= 24) {
       healthScore += 25;
-    } else if (this.temperature >= 10 && this.temperature <= 30) {
+    } else if (this.soil_temperature >= 10 && this.soil_temperature <= 30) {
       healthScore += 15;
     } else {
       healthScore += 5;
@@ -176,9 +182,9 @@ export class ProcessedSensorData {
     }
     
     // Temperature advice if extreme
-    if (this.temperature < 10) {
+    if (this.soil_temperature < 10) {
       recommendations.push("Soil temperature is low. Consider using mulch or row covers to warm the soil.");
-    } else if (this.temperature > 30) {
+    } else if (this.soil_temperature > 30) {
       recommendations.push("Soil temperature is high. Consider adding mulch to regulate soil temperature.");
     }
     

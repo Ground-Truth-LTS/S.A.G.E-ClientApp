@@ -20,11 +20,12 @@ import {
 import type { CheckboxProps } from 'tamagui'
 // Custom Utils, Components and Providers 
 import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
-import { useESP32Data } from '@/utils/esp_http_request';
+import { useESP32Data, downloadLog } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
 // Database queries
 import { deleteMultipleSessions, getAllSession, updateSession } from '@/database/db';
 import { Session } from '@/models/session';
+import { jsonToDB } from '@/utils/esp_json_parser';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -44,9 +45,13 @@ export default function LogsList() {
   const [logs, setLogs] = useState<Session[]>([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+
+  // Modals useState
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
-  
+  const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+
   const [logToRename, setLogToRename] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
   const [newSessionName, setNewSessionName] = useState<string>('');
@@ -105,9 +110,7 @@ export default function LogsList() {
   })
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
-  const [sortModalVisible, setSortModalVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState<'new-old' | 'old-new'>('new-old');
-  const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
   const { selectionMode, selectedLogs, toggleSelectionMode, toggleLogSelection } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
@@ -637,7 +640,7 @@ export default function LogsList() {
               }}>
               <YStack margin={20}>
                 {/*This is the ListItem for the Device tab*/}
-                <DisplayDeviceData data={sortedDeviceData} error={error} status={status} />
+                <DisplayDeviceData data={sortedDeviceData} error={error} status={status} setLogs={setLogs} />
               </YStack>
             </ScrollView>
           </Tabs.Content>
@@ -645,8 +648,35 @@ export default function LogsList() {
         
         </Tabs>
       </YStack>
+
       {selectionMode && <ToolBar />}
+      
       <SortModal/>
+
+      <DownloadConfirmationModal 
+        visible={downloadConfirmVisible}
+        onClose={() => setDownloadConfirmVisible(false)}
+        setDownloadConfirmVisible={setDownloadConfirmVisible}
+        isDarkMode={isDarkMode}
+        onConfirm={async () => {
+          try {
+            // const downloadedLogs = []
+
+            // selectedLogs.map((log) => {
+            //   downloadedLogs(log.name);
+
+
+            //   downloadedLogs.push(log);
+            // });
+
+          }catch{
+
+          }finally{
+
+          }
+        }}      
+      />
+
       <Modal
         visible={renameModalVisible}
         transparent={true}
@@ -752,7 +782,6 @@ export default function LogsList() {
         visible={deleteConfirmVisible}
         onClose={() => setDeleteConfirmVisible(false)}
         isDarkMode={isDarkMode}
-        setSortModalVisible={setSortModalVisible}
         setDeleteConfirmVisible={setDeleteConfirmVisible}
         onConfirm={async () => {
           try {
@@ -828,8 +857,9 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
   )
 }
 
-const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
+const DisplayDeviceData: React.FC<{ data: any; error: any; status: any; setLogs: React.Dispatch<React.SetStateAction<Session[]>> }> = ({ data, error, status, setLogs }) => {
   const { selectionMode } = useSelectionMode();
+  const db = useSQLiteContext(); // Add this line to define `db`
   
   // Ensure proper connection status handling
   if (!status || status !== 'connected') {
@@ -910,11 +940,13 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
             borderBottomWidth={1}
             borderColor="$color6"
             backgroundColor="$color1"
-            onPress={() => {
-              // Handle download action
+            onPress={async () => {
               if (!selectionMode) {
-                console.log(`Downloading file: ${fileName}`);
-                // Implement download logic here
+                const result = await downloadLog(fileName);
+                await jsonToDB(db, result);
+                const refreshedLogs = await getAllSession(db);
+                setLogs(JSON.parse(refreshedLogs));
+                console.log(`Download result for ${fileName}:`, result.data);
               }
             }}
           />
@@ -934,16 +966,16 @@ interface DownloadConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   isDarkMode: boolean;
-  setSortModalVisible: (visible: boolean) => void;
   setDownloadConfirmVisible: (visible: boolean) => void;
+  onConfirm: () => void;
 }
 // TODO Complete and test after database is working
 const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
   visible,
   onClose,
   isDarkMode,
-  setSortModalVisible,
   setDownloadConfirmVisible,
+  onConfirm
 }) => {
   return (
   <Modal
@@ -980,7 +1012,8 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
               width={"50%"}
               backgroundColor="$accent2"
               onPress={() => {
-                setDownloadConfirmVisible(false)
+                setDownloadConfirmVisible(false);
+                onConfirm();
                 // Add Toastwith message depending on the state if the download was successful or not
                 /* Here is an example
                   toast.show('Successfully downloaded!', {
@@ -1006,7 +1039,6 @@ interface DeleteConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   isDarkMode: boolean;
-  setSortModalVisible: (visible: boolean) => void;
   setDeleteConfirmVisible: (visible: boolean) => void;
   onConfirm: () => void; // Add this new prop
 }
@@ -1015,9 +1047,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   visible,
   onClose,
   isDarkMode,
-  setSortModalVisible,
   setDeleteConfirmVisible,
-  onConfirm, // Add this parameter
+  onConfirm,
 }) => {
   return (
  <Modal

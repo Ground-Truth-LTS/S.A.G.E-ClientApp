@@ -15,8 +15,7 @@ import { useEffect, useState } from 'react';
 // SQLite imports
 import { 
   createEmptyDB,
-  insertCSVData,
-  insertDummyData,
+  insertCSVData
 } from '@/database/db';
 
 
