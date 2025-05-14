@@ -1,20 +1,28 @@
 import React, { createContext, useState, useContext, ReactNode } from 'react';
 import { Session } from '@/models/session';
 
+// Define a type that can represent both Session objects and device logs
+export type LogType = Session | {
+  name?: string;
+  fileName?: string;
+  date?: string;
+  [key: string]: any;
+};
+
 interface SelectionModeContextType {
   selectionMode: boolean;
-  selectedLogs: Session[];
+  selectedLogs: LogType[];
   setSelectionMode: (value: boolean) => void;
-  setSelectedLogs: React.Dispatch<React.SetStateAction<Session[]>>;
+  setSelectedLogs: React.Dispatch<React.SetStateAction<LogType[]>>;
   toggleSelectionMode: () => void;
-  toggleLogSelection: (selection: Session[]) => void;
+  toggleLogSelection: (selection: LogType[]) => void;
 }
 
 const SelectionModeContext = createContext<SelectionModeContextType | undefined>(undefined);
 
 export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ children }) => {
   const [selectionMode, setSelectionMode] = useState(false);
-  const [selectedLogs, setSelectedLogs] = useState<Session[]>([]);
+  const [selectedLogs, setSelectedLogs] = useState<LogType[]>([]);
 
   const toggleSelectionMode = () => {
     setSelectionMode(!selectionMode);
@@ -23,7 +31,7 @@ export const SelectionModeProvider: React.FC<{children: ReactNode}> = ({ childre
     }
   };
 
-  const toggleLogSelection = (selection: Session[]) => {
+  const toggleLogSelection = (selection: LogType[]) => {
     setSelectedLogs(selection);
   };
 

@@ -124,3 +124,28 @@ useEffect(() => {
       connectionStatus 
     };
 }
+
+export async function downloadLog(fileName: string) {
+  const fileNameFormatted = fileName.split(".")[0];
+  try {
+    const response = await fetch(`http://192.168.4.1/getLogId/${fileNameFormatted}`);
+    
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+    
+    const data = await response.json();
+    
+    // Return the data instead of using state
+    return {
+      success: true,
+      data
+    };
+  } catch (error) {
+    console.error(`Failed to download file ${fileName}:`, error);
+    return {
+      success: false,
+      error
+    };
+  }
+}

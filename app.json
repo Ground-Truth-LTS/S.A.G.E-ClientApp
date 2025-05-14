@@ -19,7 +19,7 @@
         "foregroundImage": "./assets/images/adaptive-icon.png",
         "backgroundColor": "#662325"
       },
-      "package": "com.anonymous.sageclientapp",
+      "package": "com.groundtruthlts.sageclientapp",
       "permissions": [
         "ACCESS_NETWORK_STATE",
         "ACCESS_WIFI_STATE",

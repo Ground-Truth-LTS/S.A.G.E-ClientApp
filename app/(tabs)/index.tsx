@@ -20,11 +20,12 @@ import {
 import type { CheckboxProps } from 'tamagui'
 // Custom Utils, Components and Providers 
 import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
-import { useESP32Data } from '@/utils/esp_http_request';
+import { useESP32Data, downloadLog } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
 // Database queries
 import { deleteMultipleSessions, getAllSession, updateSession } from '@/database/db';
 import { Session } from '@/models/session';
+import { jsonToDB } from '@/utils/esp_json_parser';
 
 const StyledTab = styled(Tabs.Tab, {
   variants: {
@@ -44,9 +45,17 @@ export default function LogsList() {
   const [logs, setLogs] = useState<Session[]>([]);
   const insets = useSafeAreaInsets();
   const navigation = useNavigation<any>();
+
+  // Modals useState
   const [renameModalVisible, setRenameModalVisible] = useState(false);
   const [deleteConfirmVisible, setDeleteConfirmVisible] = useState(false);
-  
+  const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
+  const [sortModalVisible, setSortModalVisible] = useState(false);
+
+  //Use states
+  const [fileToDownload, setFileToDownload] = useState<string>('');
+  const [filesToDownload, setFilesToDownload] = useState<string[]>([]);
+  const [isMultipleDownload, setIsMultipleDownload] = useState<boolean>(false);
   const [logToRename, setLogToRename] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
   const [newSessionName, setNewSessionName] = useState<string>('');
@@ -105,9 +114,7 @@ export default function LogsList() {
   })
   const colorScheme = useTheme();
   const { isDarkMode } = isDarkProvider();
-  const [sortModalVisible, setSortModalVisible] = useState(false);
   const [sortOrder, setSortOrder] = useState<'new-old' | 'old-new'>('new-old');
-  const [downloadConfirmVisible, setDownloadConfirmVisible] = useState(false);
   const { selectionMode, selectedLogs, toggleSelectionMode, toggleLogSelection } = useSelectionMode();
   const setCurrentTab = (currentTab: string) => setTabState({ ...tabState, currentTab })
   const setIntentIndicator = (intentAt: any) => setTabState({ ...tabState, intentAt })
@@ -259,12 +266,25 @@ export default function LogsList() {
 
     const handleDelete = () => {
       setDeleteConfirmVisible(true);
-    };
-
-    const handleDownload = () => {
+    };    const handleDownload = () => {
       // Logic to download selected logs
-      setToastVisible(true);
-    
+      if (currentTab === "device" && selectedLogs.length > 0) {
+        // Set file names to download (extract from selected logs)
+        const fileNames = selectedLogs.map(log => {
+          // Check if this is a device log (has name or fileName property)
+          if ('name' in log || 'fileName' in log) {
+            return log.name || log.fileName;
+          }
+          return null;
+        }).filter(name => name !== null) as string[];
+        
+        if (fileNames.length > 0) {
+          setFileToDownload(fileNames[0]); // For single file case
+          setFilesToDownload(fileNames); // For multiple files
+          setIsMultipleDownload(fileNames.length > 1);
+          setDownloadConfirmVisible(true);
+        }
+      }
     };    
     
     const handleRename = () => {
@@ -379,8 +399,8 @@ export default function LogsList() {
               alignItems="center"
               height="100%"
               padding={0}
-              disabled={selectedLogs.length === 0 && selectedElements.length > 0 || currentTab !== "device"}
-              opacity={selectedLogs.length === 0 || currentTab !== "device" ? 0.5 : 1}
+              disabled={selectedLogs.length == 0 || currentTab !== "device"}
+              opacity={selectedLogs.length == 0 || currentTab !== "device" ? 0.5 : 1}
               pressStyle={{ opacity: 0.7 }}
             >
               <View alignItems='center'>
@@ -637,7 +657,14 @@ export default function LogsList() {
               }}>
               <YStack margin={20}>
                 {/*This is the ListItem for the Device tab*/}
-                <DisplayDeviceData data={sortedDeviceData} error={error} status={status} />
+                <DisplayDeviceData 
+                  data={sortedDeviceData} 
+                  error={error} 
+                  status={status} 
+                  setLogs={setLogs}
+                  setDownloadConfirmVisible={setDownloadConfirmVisible}
+                  setFileToDownload={setFileToDownload}
+                   />
               </YStack>
             </ScrollView>
           </Tabs.Content>
@@ -645,8 +672,59 @@ export default function LogsList() {
         
         </Tabs>
       </YStack>
+
       {selectionMode && <ToolBar />}
+      
       <SortModal/>
+
+      <DownloadConfirmationModal 
+        visible={downloadConfirmVisible}
+        onClose={() => setDownloadConfirmVisible(false)}
+        setDownloadConfirmVisible={setDownloadConfirmVisible}
+        isDarkMode={isDarkMode}
+        isMultipleDownload={isMultipleDownload}
+        fileCount={filesToDownload.length}
+        onConfirm={async () => {
+          try {
+            if (isMultipleDownload && filesToDownload.length > 0) {
+              // Process multiple downloads
+              let successCount = 0;
+              for (const fileName of filesToDownload) {
+                try {
+                  const result = await downloadLog(fileName);
+                  await jsonToDB(db, result);
+                  successCount++;
+                } catch (error) {
+                  console.error(`Failed to download file ${fileName}:`, error);
+                }
+              }
+              
+              const refreshedLogs = await getAllSession(db);
+              setLogs(JSON.parse(refreshedLogs));
+              
+              // Show success message
+              setToastVisible(true);
+              console.log(`Downloaded ${successCount}/${filesToDownload.length} files`);
+              
+              toggleLogSelection([]);
+              
+            } else if (fileToDownload) { //one file click
+              const result = await downloadLog(fileToDownload);
+              await jsonToDB(db, result);
+              const refreshedLogs = await getAllSession(db);
+              setLogs(JSON.parse(refreshedLogs));
+              setToastVisible(true);
+            }
+          } catch (error) {
+            console.error("Download error:", error);
+          } finally {
+            setFileToDownload("");
+            setFilesToDownload([]);
+            setIsMultipleDownload(false);
+          }
+        }}      
+      />
+
       <Modal
         visible={renameModalVisible}
         transparent={true}
@@ -664,12 +742,12 @@ export default function LogsList() {
           <View
             style={{
               width: 300,
-              padding: 20,
               backgroundColor: isDarkMode ? colorScheme.color1?.get() : 'white',
               borderRadius: 10,
             }}
           >
-            <Text style={{ fontSize: 18, marginBottom: 10 }}>Rename Log</Text>
+            <YStack padding={20}>
+            <Text  style={{ fontSize: 18, marginBottom: 10 }}>Rename Log</Text>
             <TextInput
               value={newSessionName}
               onChangeText={(text) => setNewSessionName(text)}
@@ -682,15 +760,20 @@ export default function LogsList() {
                 marginBottom: 20,
               }}
             />
+            </YStack>
+
             <XStack justifyContent="space-between">
               <Button
                 padding={20}
                 width="50%"
                 height={65}
                 backgroundColor={isDarkMode ? "$color1" : "white"}
-                marginRight={1}
                 borderColor="$accent2"
-                borderWidth={1}
+                borderRadius={10}
+                borderTopRightRadius={0}
+                borderBottomEndRadius={0}
+                borderStartStartRadius={0}
+                borderWidth={0}
                 borderTopWidth={1}
                 pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
                 onPress={() => setRenameModalVisible(false)}
@@ -699,15 +782,15 @@ export default function LogsList() {
               </Button>
               <Button
               padding={20}
-            width="50%"
-            height={65}
-            backgroundColor="$accent2"
-            borderTopEndRadius={0}
-            borderEndStartRadius={0}
-            borderStartEndRadius={0}
-            borderStartStartRadius={0}
-            borderEndEndRadius={10}
-            pressStyle={{ backgroundColor: "$color1", borderWidth: 0 }}            onPress={async () => {
+              width="50%"
+              height={65}
+              backgroundColor="$accent2"
+              borderTopEndRadius={0}
+              borderEndStartRadius={0}
+              borderStartEndRadius={0}
+              borderStartStartRadius={0}
+              borderEndEndRadius={10}
+              pressStyle={{ backgroundColor: "$color1", borderWidth: 0 }}            onPress={async () => {
               if (logToRename) {
                 try {
                   // Update in the database
@@ -752,7 +835,6 @@ export default function LogsList() {
         visible={deleteConfirmVisible}
         onClose={() => setDeleteConfirmVisible(false)}
         isDarkMode={isDarkMode}
-        setSortModalVisible={setSortModalVisible}
         setDeleteConfirmVisible={setDeleteConfirmVisible}
         onConfirm={async () => {
           try {
@@ -828,8 +910,13 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
   )
 }
 
-const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ data, error, status }) => {
-  const { selectionMode } = useSelectionMode();
+const DisplayDeviceData: React.FC<{ data: any; error: any; status: any;
+  setLogs: React.Dispatch<React.SetStateAction<Session[]>>; 
+  setFileToDownload: React.Dispatch<React.SetStateAction<string>>;
+  setDownloadConfirmVisible: React.Dispatch<React.SetStateAction<boolean>>;
+}> = ({ data, error, status, setLogs, setFileToDownload, setDownloadConfirmVisible }) => {
+  const { selectionMode, selectedLogs, toggleLogSelection } = useSelectionMode();
+  const db = useSQLiteContext(); // Add this line to define `db`
   
   // Ensure proper connection status handling
   if (!status || status !== 'connected') {
@@ -878,6 +965,16 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
         const fileName = item?.name || item?.fileName || `Log ${index + 1}`;
         const fileDate = item?.date || 'No date information';
         
+        // Check if this item is in the selectedLogs array
+        const isSelected = selectedLogs.some(log => {
+          // For device logs, compare by name or fileName
+          if ('name' in log || 'fileName' in log) {
+            const logFileName = log.name || log.fileName;
+            return logFileName === fileName;
+          }
+          return false;
+        });
+        
         return (
           <ListItem
             key={`device-log-${index}`}
@@ -889,13 +986,32 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
                 <Checkbox 
                   id={`checkbox-${index}`}
                   size="$xl3"
-                  backgroundColor="$background"
+                  backgroundColor={isSelected ? "$color9" : "transparent"}
                   borderRadius={16}
                   borderColor="$color9"
                   borderWidth={2}
+                  checked={isSelected}
+                  onCheckedChange={(checked) => {
+                    if (checked) {
+                      // Add this item to the selection
+                      const updatedSelection = [...selectedLogs, item];
+                      toggleLogSelection(updatedSelection);
+                    } else {
+                      // Remove this item from the selection
+                      const updatedSelection = selectedLogs.filter(log => {
+                        // For device logs, compare by name or fileName
+                        if ('name' in log || 'fileName' in log) {
+                          const logFileName = log.name || log.fileName;
+                          return logFileName !== fileName;
+                        }
+                        return true;
+                      });
+                      toggleLogSelection(updatedSelection);
+                    }
+                  }}
                 >
                   <Checkbox.Indicator>
-                    <CheckIcon color="$color9" />
+                    <CheckIcon color="white" />
                   </Checkbox.Indicator>
                 </Checkbox>
               ) : <FileText></FileText>}
@@ -910,11 +1026,10 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any }> = ({ d
             borderBottomWidth={1}
             borderColor="$color6"
             backgroundColor="$color1"
-            onPress={() => {
-              // Handle download action
+            onPress={async () => {
               if (!selectionMode) {
-                console.log(`Downloading file: ${fileName}`);
-                // Implement download logic here
+                setFileToDownload(fileName);
+                setDownloadConfirmVisible(true);
               }
             }}
           />
@@ -934,16 +1049,20 @@ interface DownloadConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   isDarkMode: boolean;
-  setSortModalVisible: (visible: boolean) => void;
   setDownloadConfirmVisible: (visible: boolean) => void;
+  onConfirm: () => void;
+  isMultipleDownload?: boolean;
+  fileCount?: number;
 }
 // TODO Complete and test after database is working
 const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
   visible,
   onClose,
   isDarkMode,
-  setSortModalVisible,
   setDownloadConfirmVisible,
+  onConfirm,
+  isMultipleDownload = false,
+  fileCount = 0
 }) => {
   return (
   <Modal
@@ -956,21 +1075,30 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
     <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}
       backgroundColor="rgba(0, 0, 0, 0.5)" // Semi-transparent background
     >
-      <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 300, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
+      <View borderWidth={isDarkMode ? 1 : 0} borderColor={ isDarkMode ? "$color5" : "white"}  style={{ width: 250, height: 150, backgroundColor: isDarkMode ? "$color1" : "white", borderRadius: 10 }}>
         
         <View style={{ flex: 1 }}>
-          <Text>Do you want to <Text fontWeight={600}>download</Text> these items?</Text>
-          <View style={{ flex: 1, alignItems: 'flex-end' }} flexDirection='row'>        
+          <Text padding={20} fontSize={18}>
+            Do you want to <Text fontWeight={600}>download</Text> 
+             {isMultipleDownload 
+              ? ` these ${fileCount} items?` 
+              : ` this item?`}
+            </Text>
+          <View style={{ flex: 1, alignItems: 'flex-end' }} flexDirection='row'>      
             <Button 
               padding={20} 
               width={"50%"}
+              height={65}
               backgroundColor={ isDarkMode ? "$color1" : "white"} 
               onPress={() => setDownloadConfirmVisible(false)}
               borderStartEndRadius={10}
               borderColor="$accent2"
+              borderTopEndRadius={0}
+              borderTopStartRadius={0}
+              borderEndEndRadius={0}
               borderWidth={0}
               borderTopWidth={1}
-              pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
+              pressStyle={{ backgroundColor: "$color3" }}
               >
                 <Text fontSize={18} color="$accent2">Cancel</Text>
             </Button>
@@ -978,9 +1106,15 @@ const DownloadConfirmationModal: React.FC<DownloadConfirmationModalProps> = ({
             <Button 
               padding={20} 
               width={"50%"}
+              height={65}
               backgroundColor="$accent2"
+              borderTopEndRadius={0}
+              borderEndStartRadius={0}
+              borderStartEndRadius={0}
+              borderStartStartRadius={0}
               onPress={() => {
-                setDownloadConfirmVisible(false)
+                setDownloadConfirmVisible(false);
+                onConfirm();
                 // Add Toastwith message depending on the state if the download was successful or not
                 /* Here is an example
                   toast.show('Successfully downloaded!', {
@@ -1006,7 +1140,6 @@ interface DeleteConfirmationModalProps {
   visible: boolean;
   onClose: () => void;
   isDarkMode: boolean;
-  setSortModalVisible: (visible: boolean) => void;
   setDeleteConfirmVisible: (visible: boolean) => void;
   onConfirm: () => void; // Add this new prop
 }
@@ -1015,9 +1148,8 @@ const DeleteConfirmationModal: React.FC<DeleteConfirmationModalProps> = ({
   visible,
   onClose,
   isDarkMode,
-  setSortModalVisible,
   setDeleteConfirmVisible,
-  onConfirm, // Add this parameter
+  onConfirm,
 }) => {
   return (
  <Modal

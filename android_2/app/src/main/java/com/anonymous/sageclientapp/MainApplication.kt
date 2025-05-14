@@ -1,4 +1,4 @@
-package com.anonymous.sageclientapp
+package com.groundtruthlts.sageclientapp
 
 import android.app.Application
 import android.content.res.Configuration
