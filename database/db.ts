@@ -5,6 +5,16 @@ import * as SQLite from 'expo-sqlite';
 export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
   console.log("[DB] Creating empty database...");
   try {
+
+    const tables: any = await db.getAllAsync("SELECT name FROM sqlite_master WHERE type='table'");
+    
+    if (tables && tables.length > 0 && tables[0].rows && tables[0].rows.length > 0) {
+      console.log("[DB] Database already initialized with tables:", 
+        tables[0].rows.map((row: any) => row.name).join(', '));
+      return;
+    }
+
+
     await db.withTransactionAsync(async () => {
       console.log("[DB] Transaction started. Setting PRAGMA...");
       await db.execAsync(`PRAGMA foreign_keys = ON;`);
@@ -43,8 +53,8 @@ export const createEmptyDB = async (db : SQLite.SQLiteDatabase) => {
     });
     console.log("[DB] Schema creation transaction completed successfully.");
   } catch (error) {
-    console.error("[DB] Error during schema creation transaction:", error);
-    throw error;
+    //console.error("[DB] Error during schema creation transaction:", error);
+    //throw error;
   }
 }
 

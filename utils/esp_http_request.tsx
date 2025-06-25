@@ -1,5 +1,5 @@
 // Add this to your imports
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import NetInfo, { NetInfoState } from '@react-native-community/netinfo';
 import * as Location from 'expo-location';
 
@@ -8,34 +8,52 @@ import * as Location from 'expo-location';
 const BASE_URL = 'http://192.168.4.1';
 
 export async function startESP32Logging(): Promise<any> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
-    const resp = await fetch(`${BASE_URL}/start`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
+    const resp = await fetch(`${BASE_URL}/start_sensor`)
     if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
     return await resp.json();
   } finally {
-    clearTimeout(timeoutId);
+
   }
 }
 
 export async function stopESP32Logging(): Promise<any> {
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 5000);
   try {
-    const resp = await fetch(`${BASE_URL}/end`, {
-      method: 'GET',
-      headers: { Accept: 'application/json' },
-      signal: controller.signal,
-    });
-    if (!resp.ok) throw new Error(`HTTP ${resp.status}`);
-    return await resp.json();
-  } finally {
-    clearTimeout(timeoutId);
+    const resp = await fetch(`${BASE_URL}/end_sensor`);
+    console.log(resp);
+
+    if (!resp.ok) {
+      console.error(`Stop logging request failed with status: ${resp.status}`);
+      return { success: false, message: `Failed with status ${resp.status}` };
+    }
+    
+// First, try to get the response as text
+    const textResponse = await resp.text();
+    console.log('Stop logging raw response:', textResponse);
+    
+    // Try to parse as JSON if possible
+    let responseData;
+    try {
+      responseData = JSON.parse(textResponse);
+      console.log('Parsed JSON response:', responseData);
+    } catch (e) {
+      // If not valid JSON, just use the text response
+      console.log('Response is not JSON, using text:', textResponse);
+      responseData = { 
+        success: true, 
+        message: textResponse,
+        isTextResponse: true
+      };
+    }
+    
+    return responseData;
+  } catch (error) {
+    console.error('Error stopping ESP32 logging:', error);
+    return { 
+      success: false, 
+      error: error instanceof Error ? error.message : 'Unknown error',
+      isError: true
+    };
   }
 }
 
@@ -67,11 +85,9 @@ export function useESP32Data() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<{ message: string; code: string } | null>(null);
- const [connectionStatus, setConnectionStatus] = useState('disconnected');
+  const [connectionStatus, setConnectionStatus] = useState('disconnected');
 
-
-useEffect(() => {
-  async function fetchData() {
+  const fetchData = useCallback(async () => {
     try {
       setLoading(true);
       setConnectionStatus('connecting');
@@ -85,14 +101,14 @@ useEffect(() => {
       }
 
       const jsonData = await response.json();
-      console.log('Parsed JSON data:', jsonData);
+      //console.log('Parsed JSON data:', jsonData);
 
       // Extract the logs array from the response
       if (jsonData && typeof jsonData === 'object' && Array.isArray(jsonData.logs)) {
-        console.log('Found logs array with length:', jsonData.logs.length);
+        //console.log('Found logs array with length:', jsonData.logs.length);
         setData(jsonData.logs);
       } else {
-        console.error('Expected object with logs array but got:', jsonData);
+        //console.error('Expected object with logs array but got:', jsonData);
         setData([]);
       }
 
@@ -100,28 +116,64 @@ useEffect(() => {
     } catch (err) {
       //console.error('Error fetching data from ESP32:', err);
       //setError(err instanceof Error ? { message: err.message, code: 'UNKNOWN_ERROR' } : { message: 'An unknown error occurred', code: 'UNKNOWN_ERROR' });
-      setData([]);
-      setConnectionStatus('error');
-    } finally {
-      setLoading(false);
-    }
-  }
+        setData([]);
+        setConnectionStatus('error');
+      } finally {
+        setLoading(false);
+      }
+    }, []);
 
-  fetchData();
-}, []);
-  console.log("ESP32 data state:", 
-  { 
-      dataPresent: !!data, 
-      dataLength: data?.length ?? 'N/A',
-      loading, 
-      error, 
-      connectionStatus 
-  });
+    useEffect(() => {
+      fetchData();
+    }, []);
+
+
+// useEffect(() => {
+//   async function fetchData() {
+//     try {
+//       setLoading(true);
+//       setConnectionStatus('connecting');
+
+//       // Replace with your actual ESP32 webserver URL
+//       const response = await fetch('http://192.168.4.1/getAllLogs');
+//       //console.log('Response from ESP32:', response);
+
+//       if (!response.ok) {
+//         throw new Error(`HTTP error! status: ${response.status}`);
+//       }
+
+//       const jsonData = await response.json();
+//       //console.log('Parsed JSON data:', jsonData);
+
+//       // Extract the logs array from the response
+//       if (jsonData && typeof jsonData === 'object' && Array.isArray(jsonData.logs)) {
+//         //console.log('Found logs array with length:', jsonData.logs.length);
+//         setData(jsonData.logs);
+//       } else {
+//         //console.error('Expected object with logs array but got:', jsonData);
+//         setData([]);
+//       }
+
+//       setConnectionStatus('connected');
+//     } catch (err) {
+//       //console.error('Error fetching data from ESP32:', err);
+//       //setError(err instanceof Error ? { message: err.message, code: 'UNKNOWN_ERROR' } : { message: 'An unknown error occurred', code: 'UNKNOWN_ERROR' });
+//       setData([]);
+//       setConnectionStatus('error');
+//     } finally {
+//       setLoading(false);
+//     }
+//   }
+
+//   fetchData();
+//   }, []);
+
   return { 
       data: Array.isArray(data) ? data : [], 
       loading, 
       error, 
-      connectionStatus 
+      connectionStatus,
+      refreshData: fetchData,
     };
 }
 

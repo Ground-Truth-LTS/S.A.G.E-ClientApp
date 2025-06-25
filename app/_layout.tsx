@@ -20,19 +20,21 @@ import {
 
 
 // Prevent the splash screen from auto-hiding before asset loading is complete.
-// SplashScreen.preventAutoHideAsync();
 // Import our custom BootSplash implementation
-import BootSplash from '../bootsplash';
 import { ThemeProvider, useTheme as isDarkProvider } from '../context/ThemeProvider';
 import { YStack } from 'tamagui';
 import { SelectionModeProvider } from '@/context/SelectionModeProvider';
 import { useTheme } from "tamagui";
-//import { ToastProvider } from '@tamagui/toast';
- 
+import { ESPDataRefreshProvider } from '@/context/ESPDataRefreshContext';
+import { Platform } from 'react-native';
+import { BootSplashScreen } from '@/bootsplash';
+
+
 export default function RootLayout() {
   const [loaded] = useFonts({
     SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
   });
+
   const [splashVisible, setSplashVisible] = useState(true);
   // Handle font loading and splash screen
   useEffect(() => {
@@ -41,7 +43,6 @@ export default function RootLayout() {
       // We keep splash visible for a short moment to ensure smooth transition
     }
   }, [loaded]);
-
   if (!loaded) {
     return null;
   }
@@ -53,12 +54,12 @@ export default function RootLayout() {
       }}>
         <PortalProvider shouldAddRootHost>
         <ThemeProvider>
-          {/* <ToastProvider> */}
+          <ESPDataRefreshProvider>
             <SelectionModeProvider>
               <StatusBarManager />
               <AppContent splashVisible={splashVisible} onSplashComplete={() => setSplashVisible(false)} />
             </SelectionModeProvider>
-          {/* </ToastProvider> */}
+          </ESPDataRefreshProvider>
         </ThemeProvider>
         </PortalProvider>
       </SQLiteProvider>
@@ -67,10 +68,10 @@ export default function RootLayout() {
 }
 
 function AppContent({ splashVisible, onSplashComplete }: { splashVisible: boolean; onSplashComplete: () => void }) {
-  const { isDarkMode } = isDarkProvider();
   // If you need Tamagui's theme, import it here
-  const tamaguiTheme = useTheme(); // <- Import this at the top of this component
-  
+  const { isDarkMode } = isDarkProvider();
+  const tamaguiTheme = useTheme(); 
+  const backgroundColor = tamaguiTheme.background?.get();
   return (
     <YStack flex={1} backgroundColor="$background">
       <Stack
@@ -87,7 +88,7 @@ function AppContent({ splashVisible, onSplashComplete }: { splashVisible: boolea
       </Stack>
 
       {splashVisible && (
-        <BootSplash.BootSplashScreen
+        <BootSplashScreen
           onAnimationComplete={onSplashComplete}
         />
       )}

@@ -20,11 +20,12 @@ import {
  } from '@tamagui/lucide-icons';
 
  import { 
-   checkESP32Connection,
+  checkESP32Connection,
   startESP32Logging,
   stopESP32Logging
 } from '@/utils/esp_http_request';
-
+import { useESPDataRefresh } from '@/context/ESPDataRefreshContext';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function TabLayout() {
@@ -35,7 +36,8 @@ export default function TabLayout() {
   const timerRef = useRef<NodeJS.Timeout | null>(null);
   const { selectionMode, selectedLogs } = useSelectionMode();
   const [isRecording, setIsRecording] = useState(false);
-
+  const { triggerRefresh } = useESPDataRefresh();
+  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchConnectionStatus = async () => {
@@ -73,27 +75,25 @@ export default function TabLayout() {
     const secs = (seconds % 60).toString().padStart(2, '0');
     return `${mins}:${secs}`;
   };
-
+  
   const handleRecordPress = useCallback(async () => {
     if (isConnected) {
-      try {
-        // if (!isRecording) {
-        //   // Start recording
-        //   console.log('Starting recording...');
-        //   await startESP32Logging();
-        // } else {
-        //   // Stop recording
-        //   console.log('Stopping recording...');
-        //   await stopESP32Logging();
-        // }
-        // Toggle recording state AFTER the API calls
-        setIsRecording(prev => !prev);
-        console.log('Recording state changed:', !isRecording);
-      } catch (error) {
-        console.error('Recording operation failed:', error);
+      if (!isRecording) {
+        // Start recording
+        console.log('Starting recording...');
+        setIsRecording(true);
+        const response = await startESP32Logging();
+        console.log("response start:", response)
+      } else {
+        const response = await stopESP32Logging();
+        console.log("response stop:", response);
+        setIsRecording(false);
+        setTimeout(() => {
+          triggerRefresh(); 
+        }, 4000);
       }
     }
-  }, [isConnected, isRecording]);
+  }, [isConnected, isRecording, triggerRefresh]);
 
   return (
     <Tabs
@@ -115,7 +115,7 @@ export default function TabLayout() {
         default: {
           backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
           elevation: 2,
-          marginBottom: 25,
+          marginBottom: Math.max(25, bottom),
           marginHorizontal: 10,
           borderRadius: 10,
           height: 70,

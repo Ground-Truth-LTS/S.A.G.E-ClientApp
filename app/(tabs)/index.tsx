@@ -22,6 +22,7 @@ import type { CheckboxProps } from 'tamagui'
 import { useTheme as isDarkProvider } from '@/context/ThemeProvider';
 import { useESP32Data, downloadLog } from '@/utils/esp_http_request';
 import { useSelectionMode } from '@/context/SelectionModeProvider';
+import { useESPDataRefresh } from '@/context/ESPDataRefreshContext';
 // Database queries
 import { deleteMultipleSessions, getAllSession, updateSession } from '@/database/db';
 import { Session } from '@/models/session';
@@ -58,6 +59,7 @@ export default function LogsList() {
   const [isMultipleDownload, setIsMultipleDownload] = useState<boolean>(false);
   const [logToRename, setLogToRename] = useState<number | null>(null);
   const [toastVisible, setToastVisible] = useState(false);
+  const { addRefreshListener, removeRefreshListener } = useESPDataRefresh();
   const [newSessionName, setNewSessionName] = useState<string>('');
   const { bottom } = useSafeAreaInsets();
   const {
@@ -65,18 +67,37 @@ export default function LogsList() {
     loading,
     error,
     connectionStatus: status,
+    refreshData
   } = useESP32Data();
 
   useEffect(() => {
-  if (toastVisible) {
-    const timer = setTimeout(() => setToastVisible(false), 3000); // Hide after 3 seconds
-    return () => clearTimeout(timer); // Cleanup the timer
-  }
-}, [toastVisible]);
+    if (toastVisible) {
+      const timer = setTimeout(() => setToastVisible(false), 3000); // Hide after 3 seconds
+      return () => clearTimeout(timer); // Cleanup the timer
+    }
+  }, [toastVisible]);
   useEffect(() => {
+    
     // Logs is equivalent
     async function loadLogs(){
       try {
+        setLoadingLogs(true);
+
+        if (!db) {
+          console.error("Database connection is null");
+          return;
+        }
+
+      try {
+        await db.getFirstAsync("SELECT 1", []);
+        console.log("Database connection is working");
+      } catch (dbCheckError) {
+        console.error("Database connection check failed:", dbCheckError);
+        setLogs([]);
+        return;
+      }
+      
+
         const logsRequest = await getAllSession(db);
         const logsData = JSON.parse(logsRequest);
         
@@ -101,6 +122,20 @@ export default function LogsList() {
     }
     loadLogs();
   }, [db])
+
+  useEffect(() => {
+    // Define the refresh handler outside the addRefreshListener call
+    const handleRefresh = () => {
+      console.log("Refreshing ESP data from listener");
+      refreshData();
+    };
+    
+    const listenerId = addRefreshListener(handleRefresh);
+    
+    return () => {
+      removeRefreshListener(listenerId);
+    };
+  }, [addRefreshListener, removeRefreshListener]);
 
   // Refer to tamagui doc https://tamagui.dev/ui/tabs for more information about the Tabs component, the tabs animation were done from the tabs doc
   const [tabState, setTabState] = React.useState<{
@@ -218,7 +253,6 @@ export default function LogsList() {
                   borderTopStartRadius={0}
                   borderEndEndRadius={0}
                   borderWidth={0}
-                  
                   borderTopWidth={1}
                   pressStyle={{ backgroundColor: "$color3", borderWidth: 0 }}
                   >
@@ -256,8 +290,14 @@ export default function LogsList() {
     const handleSelectAll = (checked: boolean) => {
       if (checked) {
         // Select all
-        const allLogIds = logs.map((log: any) => log);
-        toggleLogSelection(allLogIds);
+        if(currentTab === "phone"){
+          const allLogIds = logs.map((log: any) => log);
+          toggleLogSelection(allLogIds);
+        }else if (currentTab === "device")
+        {
+          const allLogIds = data.map((log: any) => log);
+          toggleLogSelection(allLogIds);
+        }
       } else {
         // Deselect all
         toggleLogSelection([]);
@@ -910,13 +950,15 @@ const TabsRovingIndicator = ({ active, ...props }: { active?: boolean } & StackP
   )
 }
 
-const DisplayDeviceData: React.FC<{ data: any; error: any; status: any;
+const DisplayDeviceData: React.FC<{ 
+  data: any;
+  error: any; 
+  status: any;
   setLogs: React.Dispatch<React.SetStateAction<Session[]>>; 
   setFileToDownload: React.Dispatch<React.SetStateAction<string>>;
   setDownloadConfirmVisible: React.Dispatch<React.SetStateAction<boolean>>;
 }> = ({ data, error, status, setLogs, setFileToDownload, setDownloadConfirmVisible }) => {
   const { selectionMode, selectedLogs, toggleLogSelection } = useSelectionMode();
-  const db = useSQLiteContext(); // Add this line to define `db`
   
   // Ensure proper connection status handling
   if (!status || status !== 'connected') {
@@ -1036,6 +1078,7 @@ const DisplayDeviceData: React.FC<{ data: any; error: any; status: any;
         );
       })}
     </React.Fragment>
+    
   );
 };
 
