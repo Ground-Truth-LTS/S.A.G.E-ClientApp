@@ -4,10 +4,12 @@ import { ChevronLeft } from '@tamagui/lucide-icons';
 import { useNavigation } from '@react-navigation/native';
 import { Button, Text, View, XStack } from 'tamagui';
 import { useTheme } from '@/context/ThemeProvider';
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 const BackButton = () => {
   const navigation = useNavigation();
   const { isDarkMode } = useTheme();
+
   return (    
     <XStack 
       alignItems="center" 
@@ -18,7 +20,6 @@ const BackButton = () => {
       style={{ 
         ...Platform.select({
           ios: {
-            
           },
           android: {         
             width: '100%',

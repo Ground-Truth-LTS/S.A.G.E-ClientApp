@@ -16,7 +16,7 @@
     },
     "android": {
       "adaptiveIcon": {
-        "foregroundImage": "./assets/images/adaptive-icon.png",
+        "foregroundImage": "./assets/images/SAGE_logo.png",
         "backgroundColor": "#662325"
       },
       "package": "com.groundtruthlts.sageclientapp",

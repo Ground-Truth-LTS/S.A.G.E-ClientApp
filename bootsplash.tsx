@@ -6,7 +6,7 @@ type Props = {
 };
 
 
-const BootSplashScreen = ({ onAnimationComplete }: Props) => {
+export const BootSplashScreen = ({ onAnimationComplete }: Props) => {
   const [opacity] = useState(new Animated.Value(1));
   const [spinValue] = useState(new Animated.Value(0));
 
@@ -76,7 +76,3 @@ const styles = StyleSheet.create({
     height: 50,
   },
 });
-
-export default {
-  BootSplashScreen,
-};
