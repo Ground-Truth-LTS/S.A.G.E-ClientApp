@@ -25,7 +25,7 @@ import {
   stopESP32Logging
 } from '@/utils/esp_http_request';
 import { useESPDataRefresh } from '@/context/ESPDataRefreshContext';
-
+import { useSafeAreaInsets } from 'react-native-safe-area-context';
 
 
 export default function TabLayout() {
@@ -37,6 +37,7 @@ export default function TabLayout() {
   const { selectionMode, selectedLogs } = useSelectionMode();
   const [isRecording, setIsRecording] = useState(false);
   const { triggerRefresh } = useESPDataRefresh();
+  const { bottom } = useSafeAreaInsets();
 
   useEffect(() => {
     const fetchConnectionStatus = async () => {
@@ -114,7 +115,7 @@ export default function TabLayout() {
         default: {
           backgroundColor: isDarkMode ?  colorScheme.color3?.get() : colorScheme.background?.get(),
           elevation: 2,
-          marginBottom: 25,
+          marginBottom: Math.max(25, bottom),
           marginHorizontal: 10,
           borderRadius: 10,
           height: 70,
